@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python:*)",
+      "Bash(start http://localhost:4000)",
+      "Bash(npm start)",
+      "Bash(taskkill:*)",
+      "Bash(cmd //c:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

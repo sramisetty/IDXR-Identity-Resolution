@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDXR - Identity Cross-Resolution System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        header p {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+        
+        .address-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            margin-top: 20px;
+        }
+        
+        .match-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .identity-id {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .confidence-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .confidence-badge.high {
+            background: #28a745;
+        }
+        
+        .confidence-badge.medium {
+            background: #ffc107;
+        }
+        
+        .confidence-badge.low {
+            background: #dc3545;
+        }
+        
+        .match-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <span>🔐</span>
+                IDXR - Identity Cross-Resolution System
+            </h1>
+            <p>Colorado Office of Information Technology - Demo Implementation</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="card">
+                <h2>Identity Resolution</h2>
+                <form id="identityForm">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="John">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Doe">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dob">Date of Birth</label>
+                        <input type="date" id="dob" name="dob">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ssn">SSN (Last 4)</label>
+                        <input type="text" id="ssn" name="ssn" maxlength="4" placeholder="1234">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="303-555-0100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="john.doe@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Address</label>
+                        <div class="address-group">
+                            <input type="text" id="street" name="street" placeholder="Street Address">
+                            <input type="text" id="city" name="city" placeholder="City">
+                            <input type="text" id="zip" name="zip" placeholder="ZIP" maxlength="5">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sourceSystem">Source System</label>
+                        <select id="sourceSystem" name="sourceSystem">
+                            <option value="HEALTH_DEPT">Health Department</option>
+                            <option value="DMV">DMV</option>
+                            <option value="SOCIAL_SERVICES">Social Services</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" id="resolveBtn">Resolve Identity</button>
+                </form>
+                
+                <div id="results" class="results"></div>
+            </div>
+            
+            <div class="card">
+                <h2>System Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalIdentities">1.25M</div>
+                        <div class="stat-label">Total Identities</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="matchesToday">45.6K</div>
+                        <div class="stat-label">Matches Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avgConfidence">92%</div>
+                        <div class="stat-label">Avg Confidence</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="responseTime">235ms</div>
+                        <div class="stat-label">Avg Response Time</div>
+                    </div>
+                </div>
+                
+                <h2 style="margin-top: 30px;">Quick Test Cases</h2>
+                <div style="margin-top: 20px;">
+                    <button onclick="loadTestCase('exact')" style="width: 100%; margin-bottom: 10px;">
+                        Load Exact Match Test
+                    </button>
+                    <button onclick="loadTestCase('fuzzy')" style="width: 100%; margin-bottom: 10px;">
+                        Load Fuzzy Match Test
+                    </button>
+                    <button onclick="loadTestCase('nomatch')" style="width: 100%;">
+                        Load No Match Test
+                    </button>
+                </div>
+                
+                <h2 style="margin-top: 30px;">API Health</h2>
+                <div id="healthStatus" style="margin-top: 20px;">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Checking services...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const MATCHING_ENGINE_URL = 'http://localhost:8001';
+        
+        // Form submission
+        document.getElementById('identityForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const resultsDiv = document.getElementById('results');
+            const resolveBtn = document.getElementById('resolveBtn');
+            
+            // Show loading
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Resolving identity...</p></div>';
+            resolveBtn.disabled = true;
+            
+            // Prepare data
+            const formData = new FormData(e.target);
+            const demographicData = {
+                first_name: formData.get('firstName'),
+                last_name: formData.get('lastName'),
+                dob: formData.get('dob'),
+                ssn_last4: formData.get('ssn'),
+                phone: formData.get('phone'),
+                email: formData.get('email'),
+                address: {
+                    street: formData.get('street'),
+                    city: formData.get('city'),
+                    state: 'CO',
+                    zip: formData.get('zip')
+                }
+            };
+            
+            // Remove empty fields
+            Object.keys(demographicData).forEach(key => {
+                if (!demographicData[key]) delete demographicData[key];
+            });
+            
+            if (demographicData.address && !demographicData.address.street) {
+                delete demographicData.address;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/v1/identity/resolve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        demographic_data: demographicData,
+                        source_system: formData.get('sourceSystem'),
+                        transaction_id: 'TXN_' + Date.now()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.matches) {
+                    displayResults(data);
+                } else {
+                    resultsDiv.innerHTML = '<div class="error">No matches found or error occurred.</div>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                resolveBtn.disabled = false;
+            }
+        });
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (data.matches.length === 0) {
+                resultsDiv.innerHTML = '<div class="success">No matches found in the system.</div>';
+                return;
+            }
+            
+            let html = `<h3>Found ${data.matches.length} Match${data.matches.length > 1 ? 'es' : ''}</h3>`;
+            
+            data.matches.forEach(match => {
+                const confidenceClass = match.confidence_score >= 0.9 ? 'high' : 
+                                       match.confidence_score >= 0.8 ? 'medium' : 'low';
+                
+                html += `
+                    <div class="match-item">
+                        <div class="match-header">
+                            <span class="identity-id">${match.identity_id}</span>
+                            <span class="confidence-badge ${confidenceClass}">
+                                ${(match.confidence_score * 100).toFixed(1)}% Confidence
+                            </span>
+                        </div>
+                        <div class="match-details">
+                            <div><strong>Match Type:</strong> ${match.match_type}</div>
+                            <div><strong>Systems:</strong> ${match.matched_systems ? match.matched_systems.join(', ') : 'N/A'}</div>
+                            ${match.match_details && match.match_details.matched_fields ? 
+                                `<div><strong>Matched Fields:</strong> ${match.match_details.matched_fields.join(', ')}</div>` : ''}
+                            <div><strong>Processing Time:</strong> ${data.processing_time_ms}ms</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // Test cases
+        function loadTestCase(type) {
+            const form = document.getElementById('identityForm');
+            
+            switch(type) {
+                case 'exact':
+                    form.firstName.value = 'John';
+                    form.lastName.value = 'Doe';
+                    form.dob.value = '1990-01-15';
+                    form.ssn.value = '6789';
+                    form.phone.value = '303-555-0100';
+                    form.street.value = '123 Main St';
+                    form.city.value = 'Denver';
+                    form.zip.value = '80202';
+                    break;
+                    
+                case 'fuzzy':
+                    form.firstName.value = 'Johnny';
+                    form.lastName.value = 'Doe';
+                    form.dob.value = '1990-01-16';
+                    form.phone.value = '(303) 555-0100';
+                    form.street.value = '123 Main Street';
+                    form.city.value = 'Denver';
+                    break;
+                    
+                case 'nomatch':
+                    form.firstName.value = 'Alice';
+                    form.lastName.value = 'Wonder';
+                    form.dob.value = '2000-06-15';
+                    form.phone.value = '720-555-9999';
+                    break;
+            }
+        }
+        
+        // Check health status
+        async function checkHealth() {
+            const healthDiv = document.getElementById('healthStatus');
+            
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                if (data.status === 'healthy') {
+                    healthDiv.innerHTML = '<div class="success">✅ All services operational</div>';
+                } else {
+                    healthDiv.innerHTML = '<div class="error">⚠️ Some services may be degraded</div>';
+                }
+            } catch (error) {
+                healthDiv.innerHTML = '<div class="error">❌ Backend services not available. Please start the server.</div>';
+            }
+        }
+        
+        // Update statistics periodically
+        async function updateStats() {
+            try {
+                const response = await fetch(`${API_URL}/v1/reports/statistics`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    document.getElementById('totalIdentities').textContent = 
+                        (data.data.total_identities / 1000000).toFixed(2) + 'M';
+                    document.getElementById('matchesToday').textContent = 
+                        (data.data.total_matches_today / 1000).toFixed(1) + 'K';
+                    document.getElementById('avgConfidence').textContent = 
+                        (data.data.average_confidence * 100).toFixed(0) + '%';
+                    document.getElementById('responseTime').textContent = 
+                        data.data.average_response_time_ms + 'ms';
+                }
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+        
+        // Initialize
+        checkHealth();
+        updateStats();
+        setInterval(updateStats, 10000); // Update every 10 seconds
+    </script>
+</body>
+</html>

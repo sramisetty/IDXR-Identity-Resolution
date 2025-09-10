@@ -76,7 +76,7 @@ class IdentityResolutionResponse(BaseModel):
     transaction_id: str
     matches: List[MatchResult]
     processing_time_ms: int
-    timestamp: datetime
+    timestamp: str
 
 # API Endpoints
 @app.get("/")
@@ -85,7 +85,7 @@ async def root():
         "service": "IDXR Matching Engine",
         "version": "1.0.0",
         "status": "operational",
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.utcnow().isoformat() + "Z"
     }
 
 @app.get("/health")
@@ -104,7 +104,7 @@ async def health_check():
                 "cache": "healthy" if cache_status else "unhealthy",
                 "matching_engine": "healthy"
             },
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.utcnow().isoformat() + "Z"
         }
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
@@ -121,13 +121,13 @@ async def resolve_identity(request: IdentityResolutionRequest):
     start_time = datetime.utcnow()
     
     try:
-        # Check cache first
-        cache_key = f"identity:{request.transaction_id}"
-        cached_result = await cache.get(cache_key)
-        
-        if cached_result:
-            logger.info(f"Cache hit for transaction {request.transaction_id}")
-            return cached_result
+        # Cache disabled for demo
+        # cache_key = f"identity:{request.transaction_id}"
+        # cached_result = await cache.get(cache_key)
+        # 
+        # if cached_result:
+        #     logger.info(f"Cache hit for transaction {request.transaction_id}")
+        #     return cached_result
         
         # Prepare demographic data
         demo_data = request.demographic_data.dict(exclude_none=True)
@@ -185,11 +185,11 @@ async def resolve_identity(request: IdentityResolutionRequest):
             transaction_id=request.transaction_id,
             matches=formatted_matches,
             processing_time_ms=processing_time,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow().isoformat() + "Z"
         )
         
-        # Cache the result
-        await cache.set(cache_key, response.dict(), expire=300)  # 5 minutes
+        # Cache disabled for demo
+        # await cache.set(cache_key, response.dict(), expire=300)  # 5 minutes
         
         # Log metrics
         logger.info(f"Resolution completed: transaction={request.transaction_id}, "
@@ -242,7 +242,7 @@ async def get_statistics():
             "average_confidence": await cache.get("stats:avg_confidence") or 0,
             "average_response_time": await cache.get("stats:avg_response_time") or 0,
             "cache_hit_rate": await cache.get("stats:cache_hit_rate") or 0,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.utcnow().isoformat() + "Z"
         }
         return stats
     except Exception as e:
