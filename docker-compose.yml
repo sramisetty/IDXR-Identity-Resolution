@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: idxr-postgres
+    environment:
+      POSTGRES_DB: idxr_db
+      POSTGRES_USER: idxr_user
+      POSTGRES_PASSWORD: idxr_secure_pass_2025
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - idxr-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: idxr-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - idxr-network
+
+  mongodb:
+    image: mongo:6
+    container_name: idxr-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: idxr_admin
+      MONGO_INITDB_ROOT_PASSWORD: idxr_mongo_pass_2025
+      MONGO_INITDB_DATABASE: idxr_documents
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - idxr-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: idxr-backend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: idxr_db
+      DB_USER: idxr_user
+      DB_PASSWORD: idxr_secure_pass_2025
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MONGO_URI: mongodb://idxr_admin:idxr_mongo_pass_2025@mongodb:27017/idxr_documents
+      JWT_SECRET: idxr_jwt_secret_key_2025
+    depends_on:
+      - postgres
+      - redis
+      - mongodb
+    volumes:
+      - ./backend:/app/backend
+      - ./config:/app/config
+    networks:
+      - idxr-network
+
+  matching-engine:
+    build:
+      context: .
+      dockerfile: backend/matching-engine/Dockerfile
+    container_name: idxr-matching-engine
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: idxr_db
+      DB_USER: idxr_user
+      DB_PASSWORD: idxr_secure_pass_2025
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend/matching-engine:/app
+    networks:
+      - idxr-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: idxr-frontend
+    ports:
+      - "4000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:3000/api
+      REACT_APP_MATCHING_ENGINE_URL: http://localhost:8000/api
+    depends_on:
+      - backend
+      - matching-engine
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - idxr-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongo_data:
+
+networks:
+  idxr-network:
+    driver: bridge
