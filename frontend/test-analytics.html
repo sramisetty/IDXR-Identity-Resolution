@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Analytics Test</h1>
+    <div style="width: 400px; height: 400px;">
+        <canvas id="algorithmEffectivenessChart"></canvas>
+    </div>
+    <div style="width: 400px; height: 400px;">
+        <canvas id="dataQualityTrendsChart"></canvas>
+    </div>
+    
+    <script>
+        let chartInstances = {};
+        
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+        
+        // Test function from analytics.js
+        function setupAlgorithmEffectivenessChart() {
+            const canvas = document.getElementById('algorithmEffectivenessChart');
+            if (!canvas) {
+                console.error('Algorithm Effectiveness chart canvas not found');
+                return;
+            }
+            console.log('Found canvas, creating chart...');
+            const ctx = canvas.getContext('2d');
+
+            chartInstances.algorithmEffectiveness = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Accuracy', 'Speed', 'Confidence', 'Recall', 'Precision', 'F1-Score'],
+                    datasets: [{
+                        label: 'Deterministic',
+                        data: [95, 98, 92, 88, 94, 91],
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.2)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            console.log('Chart created successfully');
+        }
+        
+        function setupDataQualityTrendsChart() {
+            const canvas = document.getElementById('dataQualityTrendsChart');
+            if (!canvas) {
+                console.error('Data Quality Trends chart canvas not found');
+                return;
+            }
+            console.log('Found data quality canvas, creating chart...');
+            const ctx = canvas.getContext('2d');
+
+            chartInstances.dataQualityTrends = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Completeness',
+                        data: [92, 94, 93, 95],
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            console.log('Data quality chart created successfully');
+        }
+        
+        // Initialize after DOM loads
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing charts...');
+            setTimeout(() => {
+                setupAlgorithmEffectivenessChart();
+                setupDataQualityTrendsChart();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

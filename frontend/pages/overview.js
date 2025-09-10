@@ -132,6 +132,71 @@ function loadOverviewPage() {
             </div>
         </div>
 
+        <!-- Additional Analytics Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
+            <!-- Real-time System Metrics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Real-time Metrics</h3>
+                    <div class="status-indicator" id="realtimeIndicator"></div>
+                </div>
+                <div class="card-body">
+                    <div class="space-y-3" id="realtimeMetrics">
+                        <!-- Real-time metrics will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Sources Health -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Data Sources</h3>
+                    <button class="btn btn-sm btn-outline" onclick="refreshDataSources()">
+                        <i class="fas fa-sync"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="space-y-3" id="dataSourcesHealth">
+                        <!-- Data sources will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Processing Stats</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="processingStatsChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Performing Algorithms -->
+            <div class="card lg:col-span-2">
+                <div class="card-header">
+                    <h3 class="card-title">Top Performing Algorithms (Last 24h)</h3>
+                </div>
+                <div class="card-body">
+                    <div id="topAlgorithms">
+                        <!-- Top algorithms will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Resource Usage -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Resource Usage</h3>
+                </div>
+                <div class="card-body">
+                    <div class="space-y-4" id="resourceUsage">
+                        <!-- Resource usage will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Identity Match Modal -->
         <div class="modal" id="identityMatchModal" style="display: none;">
             <div class="modal-dialog">
@@ -327,11 +392,20 @@ function loadOverviewPage() {
         </style>
     `;
 
-    // Load initial data
-    loadOverviewStats();
-    loadRecentActivity();
-    loadAlgorithmPerformance();
-    setupPerformanceChart();
+    // Load initial data with delay to ensure DOM is ready
+    setTimeout(() => {
+        loadOverviewStats();
+        loadRecentActivity();
+        loadAlgorithmPerformance();
+        setupPerformanceChart();
+        
+        // Load enhanced analytics
+        loadRealtimeMetrics();
+        loadDataSourcesHealth();
+        loadTopAlgorithms();
+        loadResourceUsage();
+        setupProcessingStatsChart();
+    }, 100);
 }
 
 async function loadOverviewStats() {
@@ -444,6 +518,34 @@ function updateStatsGrid(stats) {
             <div class="stat-change positive">
                 <i class="fas fa-arrow-down"></i>
                 <span>-0.5% decrease</span>
+            </div>
+        </div>
+
+        <div class="stat-card info">
+            <div class="stat-header">
+                <span class="stat-title">Data Quality Score</span>
+                <div class="stat-icon info">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="stat-value">${(stats.data_quality_score || 0.912 * 100).toFixed(1)}%</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                <span>+1.2% this week</span>
+            </div>
+        </div>
+
+        <div class="stat-card primary">
+            <div class="stat-header">
+                <span class="stat-title">Processing Queue</span>
+                <div class="stat-icon primary">
+                    <i class="fas fa-tasks"></i>
+                </div>
+            </div>
+            <div class="stat-value">${stats.queue_size || 127}</div>
+            <div class="stat-change negative">
+                <i class="fas fa-arrow-up"></i>
+                <span>+23 in queue</span>
             </div>
         </div>
     `;
@@ -581,7 +683,12 @@ async function loadAlgorithmPerformance() {
 }
 
 function setupPerformanceChart() {
-    const ctx = document.getElementById('performanceChart').getContext('2d');
+    const canvas = document.getElementById('performanceChart');
+    if (!canvas) {
+        console.error('Performance chart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
     
     // Generate demo data for the last 24 hours
     const now = new Date();
@@ -795,4 +902,174 @@ async function runHealthCheck() {
             </div>
         `;
     }
+}
+
+// Enhanced Analytics Functions
+function loadRealtimeMetrics() {
+    const container = document.getElementById('realtimeMetrics');
+    const indicator = document.getElementById('realtimeIndicator');
+    
+    // Set real-time indicator
+    indicator.className = 'status-indicator';
+    
+    const metrics = [
+        { label: 'Active Users', value: '23', unit: 'users', trend: '+3' },
+        { label: 'Queries/Min', value: '47', unit: 'qpm', trend: '+12' },
+        { label: 'Avg Latency', value: '34', unit: 'ms', trend: '-8' },
+        { label: 'Cache Hit Rate', value: '94.2', unit: '%', trend: '+1.3' },
+        { label: 'Error Rate', value: '0.12', unit: '%', trend: '-0.05' }
+    ];
+
+    container.innerHTML = metrics.map(metric => `
+        <div class="flex justify-between items-center">
+            <div>
+                <div class="text-sm font-medium">${metric.label}</div>
+                <div class="text-xs text-gray-500">Real-time</div>
+            </div>
+            <div class="text-right">
+                <div class="font-bold">${metric.value} ${metric.unit}</div>
+                <div class="text-xs ${metric.trend.startsWith('+') || metric.trend.startsWith('-') ? 
+                    (metric.label.includes('Error') || metric.label.includes('Latency') ? 
+                        (metric.trend.startsWith('-') ? 'text-green-600' : 'text-red-600') : 
+                        (metric.trend.startsWith('+') ? 'text-green-600' : 'text-red-600')) : 'text-gray-500'
+                }">${metric.trend}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function loadDataSourcesHealth() {
+    const container = document.getElementById('dataSourcesHealth');
+    
+    const dataSources = [
+        { name: 'Primary Database', status: 'healthy', latency: '12ms', uptime: '99.9%' },
+        { name: 'Redis Cache', status: 'healthy', latency: '3ms', uptime: '100%' },
+        { name: 'External API', status: 'warning', latency: '245ms', uptime: '98.2%' },
+        { name: 'File Storage', status: 'healthy', latency: '18ms', uptime: '99.7%' },
+        { name: 'Analytics DB', status: 'healthy', latency: '45ms', uptime: '99.5%' }
+    ];
+
+    container.innerHTML = dataSources.map(source => `
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-${source.status === 'healthy' ? 'green-500' : 'yellow-500'}"></div>
+                <span class="text-sm font-medium">${source.name}</span>
+            </div>
+            <div class="text-right text-xs">
+                <div>${source.latency}</div>
+                <div class="text-gray-500">${source.uptime}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function setupProcessingStatsChart() {
+    const canvas = document.getElementById('processingStatsChart');
+    if (!canvas) {
+        console.error('Processing Stats chart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+    
+    chartInstances.processingStats = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'In Progress', 'Queued', 'Failed'],
+            datasets: [{
+                data: [847, 23, 127, 12],
+                backgroundColor: [
+                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+}
+
+function loadTopAlgorithms() {
+    const container = document.getElementById('topAlgorithms');
+    
+    const algorithms = [
+        { name: 'Deterministic', score: 98.5, runs: 1542, efficiency: 95 },
+        { name: 'AI Hybrid', score: 96.8, runs: 893, efficiency: 87 },
+        { name: 'Probabilistic', score: 94.2, runs: 1287, efficiency: 92 },
+        { name: 'Fuzzy Matching', score: 89.3, runs: 452, efficiency: 78 }
+    ];
+
+    container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${algorithms.map((algo, index) => `
+                <div class="border rounded-lg p-4 ${index === 0 ? 'border-green-200 bg-green-50' : 'border-gray-200'}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="font-medium">${algo.name}</div>
+                            <div class="text-sm text-gray-600">${formatNumber(algo.runs)} runs today</div>
+                        </div>
+                        ${index === 0 ? '<div class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Top Performer</div>' : ''}
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <span class="text-gray-500">Score:</span>
+                            <span class="font-medium text-blue-600">${algo.score}%</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Efficiency:</span>
+                            <span class="font-medium text-green-600">${algo.efficiency}%</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function loadResourceUsage() {
+    const container = document.getElementById('resourceUsage');
+    
+    const resources = [
+        { name: 'CPU Usage', value: 67, max: 100, unit: '%', status: 'normal' },
+        { name: 'Memory', value: 5.2, max: 16, unit: 'GB', status: 'normal' },
+        { name: 'Disk Space', value: 145, max: 500, unit: 'GB', status: 'normal' },
+        { name: 'Network I/O', value: 23.5, max: 100, unit: 'Mbps', status: 'low' }
+    ];
+
+    container.innerHTML = resources.map(resource => {
+        const percentage = (resource.value / resource.max) * 100;
+        const statusColor = percentage > 80 ? 'red' : percentage > 60 ? 'yellow' : 'green';
+        
+        return `
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm font-medium">${resource.name}</span>
+                    <span class="text-sm text-gray-600">${resource.value} ${resource.unit}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-${statusColor}-500 h-2 rounded-full transition-all" style="width: ${percentage}%"></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">${resource.max} ${resource.unit} available</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function refreshDataSources() {
+    loadDataSourcesHealth();
+    showNotification('Data sources refreshed', 'success');
 }

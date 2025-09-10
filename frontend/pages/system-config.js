@@ -5,7 +5,7 @@ function loadSystemConfigPage() {
     contentArea.innerHTML = `
         <div class="space-y-6">
             <!-- Configuration Overview -->
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="stats-grid">
                 <div class="stat-card info">
                     <div class="stat-header">
                         <span class="stat-title">Active Configs</span>

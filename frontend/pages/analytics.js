@@ -31,7 +31,7 @@ function loadAnalyticsPage() {
             </div>
 
             <!-- Key Performance Indicators -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="stats-grid">
                 <div class="stat-card success">
                     <div class="stat-header">
                         <span class="stat-title">Match Success Rate</span>
@@ -162,8 +162,11 @@ function loadAnalyticsPage() {
 }
 
 function initializeAnalytics() {
-    setupAnalyticsCharts();
-    loadAnalyticsTable();
+    // Add small delay to ensure DOM is ready
+    setTimeout(() => {
+        setupAnalyticsCharts();
+        loadAnalyticsTable();
+    }, 100);
 }
 
 function setupAnalyticsCharts() {
@@ -227,7 +230,12 @@ function setupPerformanceTrendsChart() {
 }
 
 function setupAlgorithmEffectivenessChart() {
-    const ctx = document.getElementById('algorithmEffectivenessChart').getContext('2d');
+    const canvas = document.getElementById('algorithmEffectivenessChart');
+    if (!canvas) {
+        console.error('Algorithm Effectiveness chart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
 
     chartInstances.algorithmEffectiveness = new Chart(ctx, {
         type: 'radar',
@@ -237,17 +245,38 @@ function setupAlgorithmEffectivenessChart() {
                 label: 'Deterministic',
                 data: [95, 98, 92, 88, 94, 91],
                 borderColor: 'rgb(34, 197, 94)',
-                backgroundColor: 'rgba(34, 197, 94, 0.2)'
+                backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                pointBackgroundColor: 'rgb(34, 197, 94)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(34, 197, 94)'
             }, {
                 label: 'Probabilistic',
                 data: [88, 75, 85, 92, 87, 89],
                 borderColor: 'rgb(59, 130, 246)',
-                backgroundColor: 'rgba(59, 130, 246, 0.2)'
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                pointBackgroundColor: 'rgb(59, 130, 246)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(59, 130, 246)'
             }, {
                 label: 'AI Hybrid',
                 data: [92, 60, 95, 89, 93, 91],
                 borderColor: 'rgb(236, 72, 153)',
-                backgroundColor: 'rgba(236, 72, 153, 0.2)'
+                backgroundColor: 'rgba(236, 72, 153, 0.2)',
+                pointBackgroundColor: 'rgb(236, 72, 153)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(236, 72, 153)'
+            }, {
+                label: 'Fuzzy Matching',
+                data: [78, 85, 72, 75, 80, 77],
+                borderColor: 'rgb(245, 158, 11)',
+                backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                pointBackgroundColor: 'rgb(245, 158, 11)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(245, 158, 11)'
             }]
         },
         options: {
@@ -256,7 +285,30 @@ function setupAlgorithmEffectivenessChart() {
             scales: {
                 r: {
                     min: 0,
-                    max: 100
+                    max: 100,
+                    ticks: {
+                        stepSize: 20
+                    },
+                    pointLabels: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.r + '%';
+                        }
+                    }
                 }
             }
         }
@@ -264,36 +316,110 @@ function setupAlgorithmEffectivenessChart() {
 }
 
 function setupDataQualityTrendsChart() {
-    const ctx = document.getElementById('dataQualityTrendsChart').getContext('2d');
+    const canvas = document.getElementById('dataQualityTrendsChart');
+    if (!canvas) {
+        console.error('Data Quality Trends chart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+
+    // Generate more detailed timeline data
+    const labels = [];
+    const completenessData = [];
+    const accuracyData = [];
+    const consistencyData = [];
+    const uniquenessData = [];
+    
+    for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        
+        // Generate trending data with some variance
+        completenessData.push(Math.max(85, Math.min(98, 92 + Math.random() * 6 - 3 + i * 0.1)));
+        accuracyData.push(Math.max(82, Math.min(96, 88 + Math.random() * 4 - 2 + i * 0.08)));
+        consistencyData.push(Math.max(80, Math.min(94, 85 + Math.random() * 5 - 2.5 + i * 0.12)));
+        uniquenessData.push(Math.max(90, Math.min(99, 94 + Math.random() * 3 - 1.5)));
+    }
 
     chartInstances.dataQualityTrends = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            labels: labels,
             datasets: [{
                 label: 'Completeness',
-                data: [92, 94, 93, 95],
+                data: completenessData,
                 borderColor: 'rgb(34, 197, 94)',
-                backgroundColor: 'rgba(34, 197, 94, 0.1)'
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                fill: true,
+                tension: 0.2
             }, {
                 label: 'Accuracy',
-                data: [88, 89, 91, 90],
+                data: accuracyData,
                 borderColor: 'rgb(59, 130, 246)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)'
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                fill: true,
+                tension: 0.2
             }, {
                 label: 'Consistency',
-                data: [85, 87, 88, 89],
+                data: consistencyData,
                 borderColor: 'rgb(168, 85, 247)',
-                backgroundColor: 'rgba(168, 85, 247, 0.1)'
+                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                fill: true,
+                tension: 0.2
+            }, {
+                label: 'Uniqueness',
+                data: uniquenessData,
+                borderColor: 'rgb(245, 158, 11)',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                fill: true,
+                tension: 0.2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
             scales: {
                 y: {
-                    min: 80,
-                    max: 100
+                    min: 75,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Quality Score (%)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                        }
+                    }
                 }
             }
         }
@@ -301,29 +427,88 @@ function setupDataQualityTrendsChart() {
 }
 
 function setupUserActivityChart() {
-    const ctx = document.getElementById('userActivityChart').getContext('2d');
+    const canvas = document.getElementById('userActivityChart');
+    if (!canvas) {
+        console.error('User Activity chart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
 
     chartInstances.userActivity = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
             datasets: [{
-                label: 'Searches',
+                label: 'Search Queries',
                 data: [245, 198, 267, 234, 201, 89, 67],
-                backgroundColor: 'rgba(59, 130, 246, 0.6)'
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 1
             }, {
-                label: 'Matches',
+                label: 'Successful Matches',
                 data: [156, 134, 189, 167, 145, 67, 45],
-                backgroundColor: 'rgba(34, 197, 94, 0.6)'
+                backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                borderColor: 'rgb(34, 197, 94)',
+                borderWidth: 1
+            }, {
+                label: 'Manual Reviews',
+                data: [23, 18, 34, 28, 22, 8, 5],
+                backgroundColor: 'rgba(245, 158, 11, 0.8)',
+                borderColor: 'rgb(245, 158, 11)',
+                borderWidth: 1
+            }, {
+                label: 'API Calls',
+                data: [89, 76, 102, 94, 81, 34, 28],
+                backgroundColor: 'rgba(168, 85, 247, 0.8)',
+                borderColor: 'rgb(168, 85, 247)',
+                borderWidth: 1
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        afterLabel: function(context) {
+                            if (context.datasetIndex === 0) {
+                                const matches = context.chart.data.datasets[1].data[context.dataIndex];
+                                const searches = context.parsed.y;
+                                const rate = searches > 0 ? ((matches / searches) * 100).toFixed(1) : '0.0';
+                                return `Success Rate: ${rate}%`;
+                            }
+                            return '';
+                        }
+                    }
+                }
+            },
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Activity Count'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Day of Week'
+                    }
                 }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
             }
         }
     });
@@ -340,7 +525,12 @@ function loadAnalyticsTable() {
             avgConfidence: 94.2,
             avgTime: 2.3,
             accuracy: 95.8,
-            trend: 'up'
+            trend: 'up',
+            recall: 88.4,
+            precision: 96.7,
+            f1Score: 92.3,
+            errorRate: 1.5,
+            throughput: 4348
         },
         {
             name: 'Probabilistic',
@@ -349,7 +539,12 @@ function loadAnalyticsTable() {
             avgConfidence: 87.6,
             avgTime: 15.7,
             accuracy: 89.3,
-            trend: 'up'
+            trend: 'up',
+            recall: 92.1,
+            precision: 86.8,
+            f1Score: 89.4,
+            errorRate: 5.8,
+            throughput: 820
         },
         {
             name: 'AI Hybrid',
@@ -358,45 +553,121 @@ function loadAnalyticsTable() {
             avgConfidence: 91.4,
             avgTime: 45.2,
             accuracy: 93.1,
-            trend: 'up'
+            trend: 'up',
+            recall: 89.6,
+            precision: 94.2,
+            f1Score: 91.8,
+            errorRate: 3.2,
+            throughput: 221
         },
         {
-            name: 'Fuzzy',
+            name: 'Fuzzy Matching',
             runs: 4523,
             successRate: 89.3,
             avgConfidence: 78.9,
             avgTime: 8.9,
             accuracy: 82.7,
-            trend: 'down'
+            trend: 'stable',
+            recall: 75.3,
+            precision: 79.8,
+            f1Score: 77.5,
+            errorRate: 10.7,
+            throughput: 1124
+        },
+        {
+            name: 'Phonetic',
+            runs: 2156,
+            successRate: 76.4,
+            avgConfidence: 65.2,
+            avgTime: 3.1,
+            accuracy: 71.9,
+            trend: 'down',
+            recall: 68.7,
+            precision: 74.2,
+            f1Score: 71.3,
+            errorRate: 23.6,
+            throughput: 3226
         }
     ];
 
     tableBody.innerHTML = algorithms.map(algo => `
-        <tr>
+        <tr class="hover:bg-gray-50 transition-colors">
             <td>
-                <span class="algorithm-badge ${algo.name.toLowerCase().replace(' ', '_')}">${algo.name}</span>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-${getAlgorithmColor(algo.name)}"></div>
+                    <span class="font-medium">${algo.name}</span>
+                </div>
             </td>
-            <td>${formatNumber(algo.runs)}</td>
+            <td class="text-sm">${formatNumber(algo.runs)}</td>
             <td>
-                <span class="badge badge-${algo.successRate > 95 ? 'success' : algo.successRate > 90 ? 'warning' : 'danger'}">
+                <span class="badge badge-${algo.successRate > 95 ? 'success' : algo.successRate > 90 ? 'warning' : 'danger'} text-xs">
                     ${algo.successRate}%
                 </span>
             </td>
-            <td>${algo.avgConfidence}%</td>
-            <td>${algo.avgTime}ms</td>
+            <td class="text-sm">${algo.avgConfidence}%</td>
+            <td class="text-sm font-mono">${algo.avgTime}ms</td>
             <td>
                 <div class="flex items-center gap-2">
-                    <div class="w-16 bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full" style="width: ${algo.accuracy}%"></div>
+                    <div class="w-12 bg-gray-200 rounded-full h-1.5">
+                        <div class="bg-blue-500 h-1.5 rounded-full transition-all" style="width: ${algo.accuracy}%"></div>
                     </div>
-                    <span class="text-sm">${algo.accuracy}%</span>
+                    <span class="text-xs font-medium">${algo.accuracy}%</span>
                 </div>
             </td>
-            <td>
-                <i class="fas fa-arrow-${algo.trend} text-${algo.trend === 'up' ? 'green' : 'red'}-500"></i>
+            <td class="text-center">
+                <div class="flex items-center justify-center">
+                    <i class="fas fa-arrow-${algo.trend === 'stable' ? 'right' : algo.trend} text-${getTrendColor(algo.trend)} text-sm"></i>
+                    <span class="ml-1 text-xs text-gray-500">${algo.trend === 'stable' ? 'Stable' : algo.trend === 'up' ? 'Up' : 'Down'}</span>
+                </div>
+            </td>
+        </tr>
+        <tr class="bg-gray-25 border-t-0">
+            <td colspan="7" class="px-4 py-2">
+                <div class="grid grid-cols-5 gap-4 text-xs text-gray-600">
+                    <div>
+                        <span class="font-medium">Recall:</span>
+                        <span class="text-green-600 font-medium">${algo.recall}%</span>
+                    </div>
+                    <div>
+                        <span class="font-medium">Precision:</span>
+                        <span class="text-blue-600 font-medium">${algo.precision}%</span>
+                    </div>
+                    <div>
+                        <span class="font-medium">F1-Score:</span>
+                        <span class="text-purple-600 font-medium">${algo.f1Score}%</span>
+                    </div>
+                    <div>
+                        <span class="font-medium">Error Rate:</span>
+                        <span class="text-red-600 font-medium">${algo.errorRate}%</span>
+                    </div>
+                    <div>
+                        <span class="font-medium">Throughput:</span>
+                        <span class="text-orange-600 font-medium">${formatNumber(algo.throughput)}/hr</span>
+                    </div>
+                </div>
             </td>
         </tr>
     `).join('');
+}
+
+function getAlgorithmColor(name) {
+    switch(name.toLowerCase()) {
+        case 'deterministic': return 'green-500';
+        case 'probabilistic': return 'blue-500';
+        case 'ai hybrid': return 'pink-500';
+        case 'fuzzy matching': return 'yellow-500';
+        case 'phonetic': return 'gray-500';
+        default: return 'gray-500';
+    }
+}
+
+function getTrendColor(trend) {
+    switch(trend) {
+        case 'up': return 'green-500';
+        case 'down': return 'red-500';
+        case 'stable': return 'gray-500';
+        default: return 'gray-500';
+    }
 }
 
 function updateAnalytics() {

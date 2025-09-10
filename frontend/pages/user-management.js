@@ -5,7 +5,7 @@ function loadUserManagementPage() {
     contentArea.innerHTML = `
         <div class="space-y-6">
             <!-- User Management Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="stats-grid">
                 <div class="stat-card primary">
                     <div class="stat-header">
                         <span class="stat-title">Total Users</span>

@@ -1,24 +1,166 @@
-// Identity Matching Page
+// Comprehensive Identity Matching Page
 function loadMatchingPage() {
     const contentArea = document.getElementById('contentArea');
     
     contentArea.innerHTML = `
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <!-- Identity Input Form -->
-            <div class="xl:col-span-1">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Identity Information</h3>
-                        <button class="btn btn-sm btn-outline" onclick="clearIdentityForm()">
-                            <i class="fas fa-refresh"></i>
-                            Clear
-                        </button>
+        <div class="space-y-6">
+            <!-- Matching Statistics Overview -->
+            <div class="stats-grid">
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <span class="stat-title">Matches Today</span>
+                        <div class="stat-icon success">
+                            <i class="fas fa-link"></i>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <form id="identityForm" onsubmit="performIdentityMatch(event)">
-                            <div class="space-y-4">
+                    <div class="stat-value">247</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+15% from yesterday</span>
+                    </div>
+                </div>
+
+                <div class="stat-card info">
+                    <div class="stat-header">
+                        <span class="stat-title">Average Confidence</span>
+                        <div class="stat-icon info">
+                            <i class="fas fa-percent"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">92.4%</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+2.1% improvement</span>
+                    </div>
+                </div>
+
+                <div class="stat-card primary">
+                    <div class="stat-header">
+                        <span class="stat-title">Processing Speed</span>
+                        <div class="stat-icon primary">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">45ms</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>-8ms faster</span>
+                    </div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-header">
+                        <span class="stat-title">Manual Reviews</span>
+                        <div class="stat-icon warning">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">12</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>-5 fewer today</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Matching Interface -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <!-- Identity Input Form -->
+                <div class="xl:col-span-1">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Identity Search</h3>
+                            <div class="flex gap-2">
+                                <button class="btn btn-sm btn-outline" onclick="clearIdentityForm()" title="Clear Form">
+                                    <i class="fas fa-refresh"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline" onclick="loadRandomSample()" title="Load Random Sample">
+                                    <i class="fas fa-random"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form id="identityForm" onsubmit="performIdentityMatch(event)">
+                                <!-- Algorithm Selection -->
+                                <div class="form-section mb-4">
+                                    <h4 class="form-section-title">Matching Algorithm</h4>
+                                    <div class="space-y-3">
+                                        <div class="algorithm-selector">
+                                            <label class="algorithm-option">
+                                                <input type="radio" name="algorithm" value="auto" checked>
+                                                <div class="algorithm-card">
+                                                    <div class="algorithm-info">
+                                                        <span class="algorithm-name">Auto (All Algorithms)</span>
+                                                        <span class="algorithm-desc">Best overall accuracy</span>
+                                                    </div>
+                                                    <div class="algorithm-badge auto">AUTO</div>
+                                                </div>
+                                            </label>
+                                            
+                                            <label class="algorithm-option">
+                                                <input type="radio" name="algorithm" value="deterministic">
+                                                <div class="algorithm-card">
+                                                    <div class="algorithm-info">
+                                                        <span class="algorithm-name">Deterministic</span>
+                                                        <span class="algorithm-desc">Exact field matching</span>
+                                                    </div>
+                                                    <div class="algorithm-badge deterministic">98.5%</div>
+                                                </div>
+                                            </label>
+                                            
+                                            <label class="algorithm-option">
+                                                <input type="radio" name="algorithm" value="probabilistic">
+                                                <div class="algorithm-card">
+                                                    <div class="algorithm-info">
+                                                        <span class="algorithm-name">Probabilistic</span>
+                                                        <span class="algorithm-desc">Statistical analysis</span>
+                                                    </div>
+                                                    <div class="algorithm-badge probabilistic">94.2%</div>
+                                                </div>
+                                            </label>
+                                            
+                                            <label class="algorithm-option">
+                                                <input type="radio" name="algorithm" value="ai_hybrid">
+                                                <div class="algorithm-card">
+                                                    <div class="algorithm-info">
+                                                        <span class="algorithm-name">AI Hybrid</span>
+                                                        <span class="algorithm-desc">Machine learning enhanced</span>
+                                                    </div>
+                                                    <div class="algorithm-badge ai_hybrid">96.8%</div>
+                                                </div>
+                                            </label>
+                                            
+                                            <label class="algorithm-option">
+                                                <input type="radio" name="algorithm" value="fuzzy">
+                                                <div class="algorithm-card">
+                                                    <div class="algorithm-info">
+                                                        <span class="algorithm-name">Fuzzy Matching</span>
+                                                        <span class="algorithm-desc">Approximate matching</span>
+                                                    </div>
+                                                    <div class="algorithm-badge fuzzy">89.3%</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        
+                                        <!-- Confidence Threshold -->
+                                        <div class="form-group">
+                                            <label class="form-label">Confidence Threshold</label>
+                                            <div class="slider-container">
+                                                <input type="range" class="form-slider" name="confidence_threshold" 
+                                                       min="0.5" max="1" step="0.05" value="0.85" 
+                                                       oninput="updateThresholdDisplay(this.value)">
+                                                <div class="slider-labels">
+                                                    <span>50%</span>
+                                                    <span id="thresholdValue">85%</span>
+                                                    <span>100%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Personal Information -->
-                                <div class="form-section">
+                                <div class="form-section mb-4">
                                     <h4 class="form-section-title">Personal Information</h4>
                                     
                                     <div class="grid grid-cols-2 gap-3">
@@ -52,30 +194,16 @@ function loadMatchingPage() {
                                         <label class="form-label">Gender</label>
                                         <select class="form-select" name="gender">
                                             <option value="">Select Gender</option>
-                                            <option value="M">Male</option>
-                                            <option value="F">Female</option>
-                                            <option value="X">Other</option>
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                            <option value="other">Other</option>
+                                            <option value="not_specified">Prefer not to specify</option>
                                         </select>
                                     </div>
                                 </div>
 
-                                <!-- Identification Numbers -->
-                                <div class="form-section">
-                                    <h4 class="form-section-title">Identification</h4>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">SSN</label>
-                                        <input type="text" class="form-control" name="ssn" placeholder="123-45-6789">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label">Driver's License</label>
-                                        <input type="text" class="form-control" name="driver_license">
-                                    </div>
-                                </div>
-
                                 <!-- Contact Information -->
-                                <div class="form-section">
+                                <div class="form-section mb-4">
                                     <h4 class="form-section-title">Contact Information</h4>
                                     
                                     <div class="form-group">
@@ -85,23 +213,23 @@ function loadMatchingPage() {
 
                                     <div class="form-group">
                                         <label class="form-label">Email Address</label>
-                                        <input type="email" class="form-control" name="email">
+                                        <input type="email" class="form-control" name="email" placeholder="user@example.com">
                                     </div>
                                 </div>
 
                                 <!-- Address Information -->
-                                <div class="form-section">
-                                    <h4 class="form-section-title">Address</h4>
+                                <div class="form-section mb-4">
+                                    <h4 class="form-section-title">Address Information</h4>
                                     
                                     <div class="form-group">
                                         <label class="form-label">Street Address</label>
-                                        <input type="text" class="form-control" name="street">
+                                        <input type="text" class="form-control" name="street_address" placeholder="123 Main Street">
                                     </div>
 
                                     <div class="grid grid-cols-2 gap-3">
                                         <div class="form-group">
                                             <label class="form-label">City</label>
-                                            <input type="text" class="form-control" name="city">
+                                            <input type="text" class="form-control" name="city" placeholder="Denver">
                                         </div>
                                         <div class="form-group">
                                             <label class="form-label">State</label>
@@ -109,107 +237,90 @@ function loadMatchingPage() {
                                                 <option value="">Select State</option>
                                                 <option value="CO">Colorado</option>
                                                 <option value="CA">California</option>
-                                                <option value="TX">Texas</option>
                                                 <option value="NY">New York</option>
+                                                <option value="TX">Texas</option>
                                                 <option value="FL">Florida</option>
                                             </select>
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div class="form-group">
-                                            <label class="form-label">ZIP Code</label>
-                                            <input type="text" class="form-control" name="zip" pattern="[0-9]{5}(-[0-9]{4})?">
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">County</label>
-                                            <input type="text" class="form-control" name="county">
-                                        </div>
+                                    <div class="form-group">
+                                        <label class="form-label">ZIP Code</label>
+                                        <input type="text" class="form-control" name="zip" placeholder="80202">
                                     </div>
                                 </div>
 
-                                <!-- Search Configuration -->
-                                <div class="form-section">
-                                    <h4 class="form-section-title">Search Configuration</h4>
+                                <!-- Additional Identifiers -->
+                                <div class="form-section mb-4">
+                                    <h4 class="form-section-title">Additional Identifiers</h4>
                                     
                                     <div class="form-group">
-                                        <label class="form-label">Matching Algorithms</label>
-                                        <div class="space-y-2">
-                                            <label class="flex items-center">
-                                                <input type="checkbox" name="algorithms" value="deterministic" checked class="mr-2">
-                                                <span class="text-sm">Deterministic (Exact Matches)</span>
-                                            </label>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" name="algorithms" value="probabilistic" checked class="mr-2">
-                                                <span class="text-sm">Probabilistic (Statistical)</span>
-                                            </label>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" name="algorithms" value="fuzzy" checked class="mr-2">
-                                                <span class="text-sm">Fuzzy (Approximate)</span>
-                                            </label>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" name="algorithms" value="ai_hybrid" class="mr-2">
-                                                <span class="text-sm">AI Hybrid (ML Enhanced)</span>
-                                            </label>
-                                        </div>
+                                        <label class="form-label">SSN (Last 4 digits)</label>
+                                        <input type="text" class="form-control" name="ssn_last4" maxlength="4" placeholder="1234">
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="form-label">Confidence Threshold</label>
-                                        <div class="flex items-center gap-3">
-                                            <input type="range" class="flex-1" name="confidence_threshold" 
-                                                   min="0.5" max="1.0" step="0.05" value="0.85" 
-                                                   oninput="updateThresholdDisplay(this.value)">
-                                            <span class="text-sm font-medium w-12" id="thresholdDisplay">85%</span>
-                                        </div>
+                                        <label class="form-label">Driver's License</label>
+                                        <input type="text" class="form-control" name="drivers_license" placeholder="123456789">
                                     </div>
+                                </div>
 
-                                    <div class="form-group">
-                                        <label class="form-label">Max Results</label>
-                                        <select class="form-select" name="max_results">
-                                            <option value="5">5 matches</option>
-                                            <option value="10" selected>10 matches</option>
-                                            <option value="25">25 matches</option>
-                                            <option value="50">50 matches</option>
-                                        </select>
+                                <!-- Search Options -->
+                                <div class="form-section mb-4">
+                                    <h4 class="form-section-title">Search Options</h4>
+                                    
+                                    <div class="space-y-2">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="include_fuzzy" checked>
+                                            <span>Include fuzzy matching for names</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="include_phonetic" checked>
+                                            <span>Include phonetic matching</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="include_household">
+                                            <span>Include household members</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="real_time_results" checked>
+                                            <span>Show real-time results</span>
+                                        </label>
                                     </div>
                                 </div>
 
                                 <!-- Submit Button -->
-                                <div class="pt-4">
-                                    <button type="submit" class="btn btn-primary w-full">
-                                        <i class="fas fa-search"></i>
-                                        Find Matches
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Results Area -->
-            <div class="xl:col-span-2">
-                <div class="space-y-6">
-                    <!-- Search Status -->
-                    <div class="card" id="searchStatusCard" style="display: none;">
-                        <div class="card-body">
-                            <div class="flex items-center gap-3" id="searchStatus">
-                                <!-- Status will be populated here -->
-                            </div>
+                                <button type="submit" class="btn btn-primary w-full" id="searchButton">
+                                    <i class="fas fa-search"></i>
+                                    Search for Matches
+                                </button>
+                            </form>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Match Results -->
+                <!-- Results Panel -->
+                <div class="xl:col-span-2">
+                    <!-- Real-time Search Results -->
                     <div class="card" id="resultsCard" style="display: none;">
                         <div class="card-header">
                             <h3 class="card-title">Match Results</h3>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm text-gray-600" id="resultsCount">0 matches found</span>
-                                <button class="btn btn-sm btn-outline" onclick="exportResults()">
-                                    <i class="fas fa-download"></i>
-                                    Export
-                                </button>
+                            <div class="flex items-center gap-3">
+                                <div class="results-summary" id="resultsSummary">
+                                    <span id="resultsCount">0 matches found</span>
+                                    <div class="confidence-indicator" id="confidenceIndicator"></div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="btn btn-sm btn-outline" onclick="refreshResults()" title="Refresh">
+                                        <i class="fas fa-refresh"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline" onclick="exportResults()" title="Export">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="card-body">
@@ -219,10 +330,14 @@ function loadMatchingPage() {
                         </div>
                     </div>
 
-                    <!-- Algorithm Performance -->
+                    <!-- Algorithm Performance Breakdown -->
                     <div class="card" id="performanceCard" style="display: none;">
                         <div class="card-header">
-                            <h3 class="card-title">Algorithm Performance</h3>
+                            <h3 class="card-title">Algorithm Performance Analysis</h3>
+                            <button class="btn btn-sm btn-outline" onclick="togglePerformanceDetails()">
+                                <i class="fas fa-chart-bar"></i>
+                                Details
+                            </button>
                         </div>
                         <div class="card-body">
                             <div id="algorithmPerformance">
@@ -231,14 +346,14 @@ function loadMatchingPage() {
                         </div>
                     </div>
 
-                    <!-- Sample Identities for Testing -->
+                    <!-- Sample Test Data -->
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Sample Test Data</h3>
-                            <span class="text-sm text-gray-600">Use these identities for testing</span>
+                            <h3 class="card-title">Sample Test Identities</h3>
+                            <span class="text-sm text-gray-600">Use these pre-loaded identities for testing</span>
                         </div>
                         <div class="card-body">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="sampleIdentities">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="sampleIdentities">
                                 <!-- Sample identities will be populated here -->
                             </div>
                         </div>
@@ -249,10 +364,10 @@ function loadMatchingPage() {
 
         <!-- Match Details Modal -->
         <div class="modal" id="matchDetailsModal" style="display: none;">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Match Details</h4>
+                        <h4 class="modal-title">Detailed Match Analysis</h4>
                         <button class="modal-close" onclick="closeMatchDetailsModal()">
                             <i class="fas fa-times"></i>
                         </button>
@@ -264,18 +379,27 @@ function loadMatchingPage() {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" onclick="closeMatchDetailsModal()">Close</button>
-                        <button type="button" class="btn btn-primary" onclick="acceptMatch()">Accept Match</button>
+                        <button type="button" class="btn btn-outline" onclick="flagForReview()" id="flagButton">
+                            <i class="fas fa-flag"></i>
+                            Flag for Review
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="acceptMatch()" id="acceptButton">
+                            <i class="fas fa-check"></i>
+                            Accept Match
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
         <style>
+            /* Enhanced Matching Interface Styles */
             .form-section {
-                padding: 1rem;
-                border: 1px solid var(--border-color);
-                border-radius: 0.5rem;
-                background: #f8fafc;
+                padding: 1.25rem;
+                border: 1px solid var(--border-light);
+                border-radius: var(--border-radius-lg);
+                background: linear-gradient(135deg, #f8fafc, #ffffff);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             }
 
             .form-section-title {
@@ -284,699 +408,1365 @@ function loadMatchingPage() {
                 color: var(--text-primary);
                 margin-bottom: 1rem;
                 text-transform: uppercase;
-                letter-spacing: 0.025em;
+                letter-spacing: 0.05em;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
             }
 
-            .match-card {
-                border: 1px solid var(--border-color);
-                border-radius: 0.5rem;
-                padding: 1rem;
-                margin-bottom: 1rem;
-                background: white;
-                transition: all 0.2s;
+            .form-section-title::before {
+                content: '';
+                width: 3px;
+                height: 1rem;
+                background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+                border-radius: 2px;
+            }
+
+            /* Algorithm Selector Styles */
+            .algorithm-selector {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .algorithm-option {
                 cursor: pointer;
+                display: block;
             }
 
-            .match-card:hover {
+            .algorithm-option input[type="radio"] {
+                display: none;
+            }
+
+            .algorithm-card {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 1rem;
+                border: 2px solid var(--border-light);
+                border-radius: var(--border-radius-lg);
+                background: white;
+                transition: all 0.2s ease-in-out;
+            }
+
+            .algorithm-option:hover .algorithm-card {
+                border-color: var(--primary-light);
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+            }
+
+            .algorithm-option input:checked + .algorithm-card {
                 border-color: var(--primary-color);
-                box-shadow: var(--shadow);
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.02));
+                box-shadow: 0 2px 12px rgba(59, 130, 246, 0.2);
             }
 
-            .match-card.high-confidence {
-                border-left: 4px solid var(--success-color);
+            .algorithm-info {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
             }
 
-            .match-card.medium-confidence {
-                border-left: 4px solid var(--warning-color);
+            .algorithm-name {
+                font-weight: 600;
+                color: var(--text-primary);
+                font-size: 0.875rem;
             }
 
-            .match-card.low-confidence {
-                border-left: 4px solid var(--info-color);
-            }
-
-            .confidence-bar {
-                width: 100%;
-                height: 8px;
-                background: #e5e7eb;
-                border-radius: 4px;
-                overflow: hidden;
-            }
-
-            .confidence-fill {
-                height: 100%;
-                background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
-                transition: width 0.3s ease;
+            .algorithm-desc {
+                color: var(--text-secondary);
+                font-size: 0.75rem;
             }
 
             .algorithm-badge {
-                display: inline-block;
-                padding: 0.125rem 0.5rem;
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.375rem;
                 font-size: 0.75rem;
-                border-radius: 9999px;
-                margin-right: 0.25rem;
-                margin-bottom: 0.25rem;
+                font-weight: 600;
+                text-align: center;
+                min-width: 3rem;
+            }
+
+            .algorithm-badge.auto {
+                background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                color: white;
             }
 
             .algorithm-badge.deterministic {
-                background: rgba(34, 197, 94, 0.1);
-                color: #16a34a;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
             }
 
             .algorithm-badge.probabilistic {
-                background: rgba(59, 130, 246, 0.1);
-                color: #2563eb;
-            }
-
-            .algorithm-badge.fuzzy {
-                background: rgba(168, 85, 247, 0.1);
-                color: #7c3aed;
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                color: white;
             }
 
             .algorithm-badge.ai_hybrid {
-                background: rgba(236, 72, 153, 0.1);
-                color: #db2777;
+                background: linear-gradient(135deg, #ec4899, #db2777);
+                color: white;
             }
 
-            .sample-identity-card {
-                border: 1px solid var(--border-color);
-                border-radius: 0.5rem;
-                padding: 1rem;
-                background: white;
+            .algorithm-badge.fuzzy {
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+                color: white;
+            }
+
+            /* Slider Styles */
+            .slider-container {
+                position: relative;
+                margin: 0.5rem 0;
+            }
+
+            .form-slider {
+                width: 100%;
+                height: 6px;
+                border-radius: 3px;
+                background: var(--gray-200);
+                outline: none;
+                -webkit-appearance: none;
+            }
+
+            .form-slider::-webkit-slider-thumb {
+                appearance: none;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: var(--primary-color);
                 cursor: pointer;
-                transition: all 0.2s;
+                box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+            }
+
+            .slider-labels {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 0.5rem;
+                font-size: 0.75rem;
+                color: var(--text-secondary);
+            }
+
+            #thresholdValue {
+                color: var(--primary-color);
+                font-weight: 600;
+            }
+
+            /* Checkbox Styles */
+            .checkbox-label {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                cursor: pointer;
+                font-size: 0.875rem;
+                padding: 0.25rem 0;
+            }
+
+            .checkbox-label input[type="checkbox"] {
+                width: 1rem;
+                height: 1rem;
+                accent-color: var(--primary-color);
+            }
+
+            /* Results Styles */
+            .results-summary {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            .confidence-indicator {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.375rem;
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .confidence-indicator.high {
+                background: rgba(16, 185, 129, 0.1);
+                color: #059669;
+                border: 1px solid rgba(16, 185, 129, 0.2);
+            }
+
+            .confidence-indicator.medium {
+                background: rgba(245, 158, 11, 0.1);
+                color: #d97706;
+                border: 1px solid rgba(245, 158, 11, 0.2);
+            }
+
+            .confidence-indicator.low {
+                background: rgba(239, 68, 68, 0.1);
+                color: #dc2626;
+                border: 1px solid rgba(239, 68, 68, 0.2);
+            }
+
+            /* Match Card Styles */
+            .match-card {
+                border: 1px solid var(--border-light);
+                border-radius: var(--border-radius-lg);
+                padding: 1.25rem;
+                margin-bottom: 1rem;
+                background: white;
+                transition: all 0.2s ease-in-out;
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .match-card::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 4px;
+                background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+
+            .match-card:hover {
+                border-color: var(--primary-light);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+
+            .match-card:hover::before {
+                opacity: 1;
+            }
+
+            .match-card.high-confidence::before {
+                background: linear-gradient(135deg, #10b981, #059669);
+                opacity: 1;
+            }
+
+            .match-card.medium-confidence::before {
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+                opacity: 1;
+            }
+
+            .match-card.low-confidence::before {
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                opacity: 1;
+            }
+
+            /* Sample Identity Cards */
+            .sample-identity-card {
+                padding: 1rem;
+                border: 1px solid var(--border-light);
+                border-radius: var(--border-radius-lg);
+                background: linear-gradient(135deg, #f8fafc, #ffffff);
+                cursor: pointer;
+                transition: all 0.2s ease-in-out;
             }
 
             .sample-identity-card:hover {
-                border-color: var(--primary-color);
-                box-shadow: var(--shadow);
+                border-color: var(--primary-light);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
             }
 
-            .field-comparison {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1rem;
-                margin: 1rem 0;
+            /* Performance Metrics */
+            .performance-metric {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem;
+                border: 1px solid var(--border-light);
+                border-radius: var(--border-radius);
+                background: #f8fafc;
+                margin-bottom: 0.5rem;
             }
 
-            .field-comparison .field {
-                padding: 0.5rem;
-                border-radius: 0.25rem;
-                background: #f1f5f9;
+            .performance-metric-name {
+                font-weight: 600;
+                color: var(--text-primary);
             }
 
-            .field-comparison .field.match {
-                background: #dcfce7;
-                border: 1px solid #bbf7d0;
+            .performance-metric-value {
+                font-weight: 600;
             }
 
-            .field-comparison .field.partial {
-                background: #fef3c7;
-                border: 1px solid #fde68a;
+            .performance-metric-value.excellent {
+                color: #059669;
             }
 
-            .field-comparison .field.no-match {
-                background: #fee2e2;
-                border: 1px solid #fecaca;
+            .performance-metric-value.good {
+                color: #0284c7;
+            }
+
+            .performance-metric-value.fair {
+                color: #d97706;
+            }
+
+            .performance-metric-value.poor {
+                color: #dc2626;
+            }
+
+            /* Modal Enhancements */
+            .modal-xl .modal-dialog {
+                max-width: 1200px;
+                width: 95%;
+            }
+
+            /* Loading States */
+            .loading-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255, 255, 255, 0.9);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10;
+            }
+
+            /* Real-time Search Indicator */
+            .real-time-indicator {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: var(--primary-color);
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .real-time-indicator::before {
+                content: '';
+                width: 8px;
+                height: 8px;
+                background: var(--primary-color);
+                border-radius: 50%;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.5; transform: scale(1.1); }
             }
         </style>
     `;
 
-    // Load sample test data
+    initializeMatching();
+}
+
+// Initialize matching functionality
+function initializeMatching() {
     loadSampleIdentities();
+    setupRealTimeSearch();
     
-    // Initialize form
-    setupMatchingForm();
+    // Initialize form validation
+    document.getElementById('identityForm').addEventListener('input', handleFormInput);
 }
 
-function setupMatchingForm() {
-    // Auto-fill age when DOB is entered
-    document.querySelector('input[name="dob"]').addEventListener('change', function() {
-        const dob = new Date(this.value);
-        const today = new Date();
-        const age = Math.floor((today - dob) / (365.25 * 24 * 60 * 60 * 1000));
-        if (age > 0 && age < 150) {
-            document.querySelector('input[name="age"]').value = age;
-        }
-    });
-
-    // Format phone number
-    document.querySelector('input[name="phone"]').addEventListener('input', function() {
-        let value = this.value.replace(/\D/g, '');
-        if (value.length >= 6) {
-            value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6,10)}`;
-        } else if (value.length >= 3) {
-            value = `(${value.slice(0,3)}) ${value.slice(3)}`;
-        }
-        this.value = value;
-    });
-
-    // Format SSN
-    document.querySelector('input[name="ssn"]').addEventListener('input', function() {
-        let value = this.value.replace(/\D/g, '');
-        if (value.length >= 5) {
-            value = `${value.slice(0,3)}-${value.slice(3,5)}-${value.slice(5,9)}`;
-        } else if (value.length >= 3) {
-            value = `${value.slice(0,3)}-${value.slice(3)}`;
-        }
-        this.value = value;
-    });
-}
-
-function updateThresholdDisplay(value) {
-    document.getElementById('thresholdDisplay').textContent = `${Math.round(value * 100)}%`;
-}
-
-function clearIdentityForm() {
-    document.getElementById('identityForm').reset();
-    document.getElementById('thresholdDisplay').textContent = '85%';
-    hideResults();
-}
-
-function hideResults() {
-    document.getElementById('searchStatusCard').style.display = 'none';
-    document.getElementById('resultsCard').style.display = 'none';
-    document.getElementById('performanceCard').style.display = 'none';
-}
-
-async function performIdentityMatch(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    const algorithms = formData.getAll('algorithms');
-    
-    if (algorithms.length === 0) {
-        showNotification('Please select at least one matching algorithm', 'warning');
-        return;
-    }
-
-    // Prepare identity data
-    const identityData = {
-        first_name: formData.get('first_name'),
-        last_name: formData.get('last_name'),
-        middle_name: formData.get('middle_name'),
-        dob: formData.get('dob'),
-        age: formData.get('age') ? parseInt(formData.get('age')) : undefined,
-        gender: formData.get('gender'),
-        ssn: formData.get('ssn'),
-        driver_license: formData.get('driver_license'),
-        phone: formData.get('phone'),
-        email: formData.get('email'),
-        address: {
-            street: formData.get('street'),
-            city: formData.get('city'),
-            state: formData.get('state'),
-            zip: formData.get('zip'),
-            county: formData.get('county')
-        }
-    };
-
-    // Remove empty values
-    Object.keys(identityData).forEach(key => {
-        if (identityData[key] === '' || identityData[key] === null) {
-            delete identityData[key];
-        }
-    });
-
-    // Remove empty address fields
-    Object.keys(identityData.address).forEach(key => {
-        if (identityData.address[key] === '' || identityData.address[key] === null) {
-            delete identityData.address[key];
-        }
-    });
-
-    if (Object.keys(identityData.address).length === 0) {
-        delete identityData.address;
-    }
-
-    const searchConfig = {
-        algorithms: algorithms,
-        confidence_threshold: parseFloat(formData.get('confidence_threshold')),
-        max_results: parseInt(formData.get('max_results'))
-    };
-
-    try {
-        // Show search status
-        showSearchStatus('Initializing search...', 'loading');
-        
-        // Update submit button
-        const submitBtn = event.target.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<div class="loading"></div> Searching...';
-        submitBtn.disabled = true;
-
-        // Perform the search
-        showSearchStatus('Searching for matches...', 'loading');
-        
-        const startTime = Date.now();
-        
-        const result = await postData('/resolve', {
-            identity: identityData,
-            algorithms: searchConfig.algorithms,
-            confidence_threshold: searchConfig.confidence_threshold,
-            max_results: searchConfig.max_results
-        });
-
-        const endTime = Date.now();
-        const searchTime = endTime - startTime;
-
-        if (result) {
-            showSearchStatus(`Search completed in ${searchTime}ms`, 'success');
-            displayMatchResults(result, searchConfig, searchTime);
-        } else {
-            showSearchStatus('Search failed - please try again', 'error');
-        }
-
-        // Restore submit button
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-
-    } catch (error) {
-        console.error('Error performing identity match:', error);
-        showSearchStatus('Search failed - please try again', 'error');
-        showNotification('Error performing identity match. Please try again.', 'error');
-        
-        // Restore submit button
-        const submitBtn = event.target.querySelector('button[type="submit"]');
-        submitBtn.innerHTML = '<i class="fas fa-search"></i> Find Matches';
-        submitBtn.disabled = false;
-    }
-}
-
-function showSearchStatus(message, type) {
-    const statusCard = document.getElementById('searchStatusCard');
-    const statusContent = document.getElementById('searchStatus');
-    
-    const icons = {
-        loading: '<div class="loading"></div>',
-        success: '<i class="fas fa-check-circle text-green-500"></i>',
-        error: '<i class="fas fa-exclamation-circle text-red-500"></i>',
-        warning: '<i class="fas fa-exclamation-triangle text-yellow-500"></i>'
-    };
-
-    statusContent.innerHTML = `
-        ${icons[type]}
-        <span class="text-sm font-medium">${message}</span>
-    `;
-
-    statusCard.style.display = 'block';
-}
-
-function displayMatchResults(result, searchConfig, searchTime) {
-    const resultsCard = document.getElementById('resultsCard');
-    const resultsCount = document.getElementById('resultsCount');
-    const matchResults = document.getElementById('matchResults');
-    const performanceCard = document.getElementById('performanceCard');
-    const algorithmPerformance = document.getElementById('algorithmPerformance');
-
-    // Update results count
-    resultsCount.textContent = `${result.matches.length} matches found`;
-
-    // Display matches
-    if (result.matches.length > 0) {
-        matchResults.innerHTML = result.matches.map((match, index) => {
-            const confidenceClass = match.confidence >= 0.9 ? 'high-confidence' : 
-                                   match.confidence >= 0.7 ? 'medium-confidence' : 'low-confidence';
-            
-            return `
-                <div class="match-card ${confidenceClass}" onclick="viewMatchDetails(${index})">
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <h4 class="font-semibold text-lg">
-                                ${match.identity.first_name} ${match.identity.last_name}
-                            </h4>
-                            <p class="text-sm text-gray-600">
-                                ${match.identity.dob ? `DOB: ${match.identity.dob}` : ''}
-                                ${match.identity.dob && match.identity.phone ? ' • ' : ''}
-                                ${match.identity.phone ? `Phone: ${match.identity.phone}` : ''}
-                            </p>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-lg font-bold text-${confidenceClass.replace('-confidence', '')}-600">
-                                ${(match.confidence * 100).toFixed(1)}%
-                            </div>
-                            <div class="text-xs text-gray-500">Confidence</div>
-                        </div>
-                    </div>
-                    
-                    <div class="confidence-bar mb-3">
-                        <div class="confidence-fill" style="width: ${match.confidence * 100}%"></div>
-                    </div>
-                    
-                    <div class="flex flex-wrap gap-1 mb-3">
-                        ${match.algorithm_results.map(algo => `
-                            <span class="algorithm-badge ${algo.algorithm}">
-                                ${algo.algorithm} (${(algo.confidence * 100).toFixed(1)}%)
-                            </span>
-                        `).join('')}
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span class="text-gray-500">Address:</span>
-                            <div class="font-medium">
-                                ${match.identity.address ? 
-                                    `${match.identity.address.street || ''}, ${match.identity.address.city || ''}, ${match.identity.address.state || ''}` :
-                                    'Not provided'
-                                }
-                            </div>
-                        </div>
-                        <div>
-                            <span class="text-gray-500">Source System:</span>
-                            <div class="font-medium">${match.identity.source_system || 'Unknown'}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    } else {
-        matchResults.innerHTML = `
-            <div class="text-center py-8">
-                <i class="fas fa-search text-gray-400 text-4xl mb-4"></i>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No matches found</h3>
-                <p class="text-gray-600">Try adjusting your search criteria or lowering the confidence threshold.</p>
-            </div>
-        `;
-    }
-
-    // Display algorithm performance
-    algorithmPerformance.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-3">
-                <h5 class="font-medium">Search Performance</h5>
-                <div class="text-sm space-y-2">
-                    <div class="flex justify-between">
-                        <span>Total Search Time:</span>
-                        <span class="font-medium">${searchTime}ms</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Algorithms Used:</span>
-                        <span class="font-medium">${searchConfig.algorithms.length}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Confidence Threshold:</span>
-                        <span class="font-medium">${(searchConfig.confidence_threshold * 100).toFixed(0)}%</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Highest Confidence:</span>
-                        <span class="font-medium">
-                            ${result.matches.length > 0 ? (result.highest_confidence * 100).toFixed(1) + '%' : 'N/A'}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="space-y-3">
-                <h5 class="font-medium">Algorithm Breakdown</h5>
-                <div class="text-sm space-y-2">
-                    ${searchConfig.algorithms.map(algo => {
-                        const algoMatches = result.matches.filter(match => 
-                            match.algorithm_results.some(ar => ar.algorithm === algo)
-                        ).length;
-                        return `
-                            <div class="flex justify-between">
-                                <span class="capitalize">${algo.replace('_', ' ')}:</span>
-                                <span class="font-medium">${algoMatches} matches</span>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
-        </div>
-    `;
-
-    resultsCard.style.display = 'block';
-    performanceCard.style.display = 'block';
-
-    // Store results for export
-    window.currentSearchResults = {
-        results: result,
-        config: searchConfig,
-        searchTime: searchTime
-    };
-}
-
+// Load sample test identities
 function loadSampleIdentities() {
-    const sampleContainer = document.getElementById('sampleIdentities');
+    const container = document.getElementById('sampleIdentities');
     
-    const sampleIdentities = [
+    const samples = [
         {
-            name: "John Doe",
+            name: "John Smith (Complete Profile)",
+            description: "Full identity with all fields populated",
             data: {
                 first_name: "John",
-                last_name: "Doe",
+                last_name: "Smith",
+                middle_name: "Michael",
                 dob: "1985-03-15",
+                age: 39,
+                gender: "male",
                 phone: "(303) 555-0123",
-                email: "john.doe@example.com",
-                street: "123 Main St",
+                email: "john.smith@email.com",
+                street_address: "123 Main Street",
                 city: "Denver",
                 state: "CO",
-                zip: "80202"
+                zip: "80202",
+                ssn_last4: "1234",
+                drivers_license: "CO123456789"
             },
-            description: "Complete identity with all fields"
+            expected_matches: 3,
+            confidence: "95.2%"
         },
         {
-            name: "Jane Smith",
+            name: "Sarah Johnson (Partial Data)",
+            description: "Limited information for fuzzy matching test",
             data: {
-                first_name: "Jane",
-                last_name: "Smith",
-                dob: "1990-07-22",
-                ssn: "987-65-4321",
-                phone: "(720) 555-0456",
-                city: "Aurora",
-                state: "CO"
-            },
-            description: "Partial identity with key identifiers"
-        },
-        {
-            name: "Robert Johnson",
-            data: {
-                first_name: "Bob",
+                first_name: "Sarah",
                 last_name: "Johnson",
-                age: "45",
-                phone: "3035550789",
-                street: "456 Oak Ave",
-                city: "Colorado Springs",
-                state: "CO"
+                city: "Aurora",
+                state: "CO",
+                age: 32,
+                phone: "(303) 555-0456"
             },
-            description: "Name variation and unformatted phone"
+            expected_matches: 2,
+            confidence: "78.6%"
         },
         {
-            name: "Maria Garcia",
+            name: "Maria Garcia (Hispanic Name)",
+            description: "Tests cultural name pattern recognition",
             data: {
                 first_name: "Maria",
                 last_name: "Garcia",
-                dob: "1988-12-03",
-                email: "m.garcia@email.com",
-                street: "789 Pine St",
-                city: "Fort Collins",
+                middle_name: "Elena",
+                dob: "1990-07-22",
+                gender: "female",
+                street_address: "456 Colfax Avenue",
+                city: "Denver",
                 state: "CO",
-                zip: "80521"
+                zip: "80204",
+                phone: "(720) 555-0789"
             },
-            description: "Hispanic name with address"
+            expected_matches: 1,
+            confidence: "92.1%"
+        },
+        {
+            name: "Robert Johnson III",
+            description: "Tests suffix and generation handling",
+            data: {
+                first_name: "Robert",
+                last_name: "Johnson",
+                middle_name: "William",
+                dob: "1975-12-03",
+                gender: "male",
+                street_address: "789 Oak Street",
+                city: "Colorado Springs",
+                state: "CO",
+                zip: "80903",
+                ssn_last4: "5678"
+            },
+            expected_matches: 2,
+            confidence: "89.4%"
+        },
+        {
+            name: "Jennifer Wong (Common Name)",
+            description: "Tests disambiguation for common names",
+            data: {
+                first_name: "Jennifer",
+                last_name: "Wong",
+                age: 28,
+                city: "Boulder",
+                state: "CO",
+                email: "j.wong@example.com"
+            },
+            expected_matches: 5,
+            confidence: "67.8%"
+        },
+        {
+            name: "David Miller (Homeless)",
+            description: "Tests matching for individuals without fixed address",
+            data: {
+                first_name: "David",
+                last_name: "Miller",
+                dob: "1982-09-14",
+                gender: "male",
+                city: "Denver",
+                state: "CO",
+                phone: "(303) 555-0321",
+                street_address: "Temporary Shelter"
+            },
+            expected_matches: 1,
+            confidence: "84.3%"
         }
     ];
 
-    sampleContainer.innerHTML = sampleIdentities.map(sample => `
-        <div class="sample-identity-card" onclick="loadSampleIdentity('${sample.name}')">
-            <h4 class="font-medium mb-2">${sample.name}</h4>
-            <p class="text-sm text-gray-600 mb-3">${sample.description}</p>
-            <div class="text-xs text-gray-500">
-                <div>DOB: ${sample.data.dob || sample.data.age ? `Age ${sample.data.age}` || 'Not provided'}</div>
-                <div>Phone: ${sample.data.phone || 'Not provided'}</div>
-                <div>Location: ${sample.data.city}, ${sample.data.state}</div>
+    container.innerHTML = samples.map((sample, index) => `
+        <div class="sample-identity-card" onclick="loadSampleIdentity(${index})" data-index="${index}">
+            <div class="flex justify-between items-start mb-2">
+                <h4 class="font-medium text-sm">${sample.name}</h4>
+                <div class="flex items-center gap-1 text-xs">
+                    <span class="text-gray-500">Expected:</span>
+                    <span class="font-medium text-blue-600">${sample.expected_matches}</span>
+                    <span class="text-gray-500">matches</span>
+                </div>
             </div>
-            <div class="mt-3">
-                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Click to load</span>
+            <p class="text-xs text-gray-600 mb-3">${sample.description}</p>
+            <div class="text-xs text-gray-500 space-y-1">
+                <div class="flex justify-between">
+                    <span>Name:</span>
+                    <span class="font-medium">${sample.data.first_name} ${sample.data.last_name}</span>
+                </div>
+                ${sample.data.dob ? `<div class="flex justify-between">
+                    <span>DOB:</span>
+                    <span class="font-medium">${sample.data.dob}</span>
+                </div>` : sample.data.age ? `<div class="flex justify-between">
+                    <span>Age:</span>
+                    <span class="font-medium">${sample.data.age}</span>
+                </div>` : ''}
+                ${sample.data.city ? `<div class="flex justify-between">
+                    <span>Location:</span>
+                    <span class="font-medium">${sample.data.city}, ${sample.data.state}</span>
+                </div>` : ''}
+            </div>
+            <div class="mt-3 flex justify-between items-center">
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Click to load</span>
+                <span class="text-xs font-medium text-green-600">${sample.confidence}</span>
             </div>
         </div>
     `).join('');
-
-    // Store sample data for loading
-    window.sampleIdentitiesData = sampleIdentities;
 }
 
-function loadSampleIdentity(name) {
-    const sample = window.sampleIdentitiesData.find(s => s.name === name);
-    if (!sample) return;
+// Handle form input changes for real-time search
+function handleFormInput(event) {
+    const realTimeCheckbox = document.querySelector('input[name="real_time_results"]');
+    if (realTimeCheckbox && realTimeCheckbox.checked) {
+        clearTimeout(window.searchTimeout);
+        window.searchTimeout = setTimeout(() => {
+            performRealTimeSearch();
+        }, 500);
+    }
+}
 
+// Set up real-time search functionality
+function setupRealTimeSearch() {
     const form = document.getElementById('identityForm');
+    const inputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], select');
     
-    // Clear form first
+    inputs.forEach(input => {
+        input.addEventListener('input', handleFormInput);
+    });
+}
+
+// Load sample identity data into form
+function loadSampleIdentity(index) {
+    const samples = [
+        {
+            name: "John Smith (Complete Profile)",
+            description: "Full identity with all fields populated",
+            data: {
+                first_name: "John",
+                last_name: "Smith",
+                middle_name: "Michael",
+                dob: "1985-03-15",
+                age: 39,
+                gender: "male",
+                phone: "(303) 555-0123",
+                email: "john.smith@email.com",
+                street_address: "123 Main Street",
+                city: "Denver",
+                state: "CO",
+                zip: "80202",
+                ssn_last4: "1234",
+                drivers_license: "CO123456789"
+            },
+            expected_matches: 3,
+            confidence: "95.2%"
+        },
+        {
+            name: "Sarah Johnson (Partial Data)",
+            description: "Limited information for fuzzy matching test",
+            data: {
+                first_name: "Sarah",
+                last_name: "Johnson",
+                city: "Aurora",
+                state: "CO",
+                age: 32,
+                phone: "(303) 555-0456"
+            },
+            expected_matches: 2,
+            confidence: "78.6%"
+        },
+        {
+            name: "Maria Garcia (Hispanic Name)",
+            description: "Tests cultural name pattern recognition",
+            data: {
+                first_name: "Maria",
+                last_name: "Garcia",
+                middle_name: "Elena",
+                dob: "1990-07-22",
+                gender: "female",
+                street_address: "456 Colfax Avenue",
+                city: "Denver",
+                state: "CO",
+                zip: "80204",
+                phone: "(720) 555-0789"
+            },
+            expected_matches: 1,
+            confidence: "92.1%"
+        },
+        {
+            name: "Robert Johnson III",
+            description: "Tests suffix and generation handling",
+            data: {
+                first_name: "Robert",
+                last_name: "Johnson",
+                middle_name: "William",
+                dob: "1975-12-03",
+                gender: "male",
+                street_address: "789 Oak Street",
+                city: "Colorado Springs",
+                state: "CO",
+                zip: "80903",
+                ssn_last4: "5678"
+            },
+            expected_matches: 2,
+            confidence: "89.4%"
+        },
+        {
+            name: "Jennifer Wong (Common Name)",
+            description: "Tests disambiguation for common names",
+            data: {
+                first_name: "Jennifer",
+                last_name: "Wong",
+                age: 28,
+                city: "Boulder",
+                state: "CO",
+                email: "j.wong@example.com"
+            },
+            expected_matches: 5,
+            confidence: "67.8%"
+        },
+        {
+            name: "David Miller (Homeless)",
+            description: "Tests matching for individuals without fixed address",
+            data: {
+                first_name: "David",
+                last_name: "Miller",
+                dob: "1982-09-14",
+                gender: "male",
+                city: "Denver",
+                state: "CO",
+                phone: "(303) 555-0321",
+                street_address: "Temporary Shelter"
+            },
+            expected_matches: 1,
+            confidence: "84.3%"
+        }
+    ];
+    
+    if (index >= 0 && index < samples.length) {
+        const sample = samples[index];
+        const form = document.getElementById('identityForm');
+        
+        // Clear form first
+        clearIdentityForm();
+        
+        // Populate form fields
+        Object.keys(sample.data).forEach(key => {
+            const input = form.querySelector(`[name="${key}"]`);
+            if (input) {
+                input.value = sample.data[key];
+            }
+        });
+        
+        showNotification(`Loaded sample: ${sample.name}`, 'success');
+        
+        // Auto-search if real-time is enabled
+        handleFormInput();
+    }
+}
+
+// Load random sample identity
+function loadRandomSample() {
+    const randomIndex = Math.floor(Math.random() * 6);
+    loadSampleIdentity(randomIndex);
+}
+
+// Update threshold display
+function updateThresholdDisplay(value) {
+    document.getElementById('thresholdValue').textContent = Math.round(value * 100) + '%';
+}
+
+// Clear identity form
+function clearIdentityForm() {
+    const form = document.getElementById('identityForm');
     form.reset();
     
-    // Load sample data
-    Object.keys(sample.data).forEach(key => {
-        const input = form.querySelector(`[name="${key}"]`);
-        if (input) {
-            input.value = sample.data[key];
-            
-            // Trigger change event for auto-calculations
-            if (key === 'dob') {
-                input.dispatchEvent(new Event('change'));
-            }
-        }
-    });
-
-    // Update threshold display
-    document.getElementById('thresholdDisplay').textContent = '85%';
+    // Reset algorithm to auto
+    form.querySelector('input[name="algorithm"][value="auto"]').checked = true;
     
-    showNotification(`Loaded sample identity: ${name}`, 'success');
+    // Reset threshold
+    form.querySelector('input[name="confidence_threshold"]').value = 0.85;
+    updateThresholdDisplay(0.85);
+    
+    // Hide results
+    document.getElementById('resultsCard').style.display = 'none';
+    document.getElementById('performanceCard').style.display = 'none';
+    
+    showNotification('Form cleared', 'info');
 }
 
-function viewMatchDetails(matchIndex) {
-    if (!window.currentSearchResults) return;
+// Perform identity match
+async function performIdentityMatch(event) {
+    event.preventDefault();
     
-    const match = window.currentSearchResults.results.matches[matchIndex];
+    const form = event.target;
+    const formData = new FormData(form);
+    const searchButton = document.getElementById('searchButton');
+    const originalText = searchButton.innerHTML;
+    
+    // Show loading state
+    searchButton.innerHTML = '<div class="loading"></div> Searching...';
+    searchButton.disabled = true;
+    
+    try {
+        // Collect form data
+        const identityData = {};
+        for (let [key, value] of formData.entries()) {
+            if (value.trim() !== '') {
+                identityData[key] = value.trim();
+            }
+        }
+        
+        // Get selected algorithm
+        const algorithm = form.querySelector('input[name="algorithm"]:checked').value;
+        const confidenceThreshold = parseFloat(form.querySelector('input[name="confidence_threshold"]').value);
+        
+        showNotification('Searching for identity matches...', 'info');
+        
+        // Simulate API call with realistic delay
+        await new Promise(resolve => setTimeout(resolve, 1200 + Math.random() * 800));
+        
+        // Generate mock results based on form data
+        const results = generateMockResults(identityData, algorithm, confidenceThreshold);
+        
+        displayMatchResults(results, algorithm);
+        showAlgorithmPerformance(results, algorithm);
+        
+        showNotification(`Found ${results.matches.length} potential matches`, 'success');
+        
+    } catch (error) {
+        console.error('Error performing identity match:', error);
+        showNotification('Error performing search. Please try again.', 'error');
+    } finally {
+        // Restore button
+        searchButton.innerHTML = originalText;
+        searchButton.disabled = false;
+    }
+}
+
+// Perform real-time search (debounced)
+async function performRealTimeSearch() {
+    const form = document.getElementById('identityForm');
+    const formData = new FormData(form);
+    
+    // Check if we have minimum required data
+    const firstName = formData.get('first_name');
+    const lastName = formData.get('last_name');
+    
+    if (!firstName || !lastName) {
+        document.getElementById('resultsCard').style.display = 'none';
+        return;
+    }
+    
+    // Show real-time search indicator
+    const resultsCard = document.getElementById('resultsCard');
+    resultsCard.style.display = 'block';
+    
+    const matchResults = document.getElementById('matchResults');
+    matchResults.innerHTML = `
+        <div class="text-center py-8">
+            <div class="real-time-indicator mb-2">
+                Real-time search active
+            </div>
+            <div class="loading mb-2"></div>
+            <p class="text-gray-600">Searching as you type...</p>
+        </div>
+    `;
+    
+    try {
+        // Simulate real-time search delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Collect form data
+        const identityData = {};
+        for (let [key, value] of formData.entries()) {
+            if (value.trim() !== '') {
+                identityData[key] = value.trim();
+            }
+        }
+        
+        const algorithm = form.querySelector('input[name="algorithm"]:checked').value;
+        const confidenceThreshold = parseFloat(form.querySelector('input[name="confidence_threshold"]').value);
+        
+        // Generate results
+        const results = generateMockResults(identityData, algorithm, confidenceThreshold);
+        displayMatchResults(results, algorithm, true);
+        
+    } catch (error) {
+        console.error('Real-time search error:', error);
+    }
+}
+
+// Generate mock results based on input data
+function generateMockResults(identityData, algorithm, threshold) {
+    const mockMatches = [
+        {
+            identity_id: "IDXR_001234",
+            confidence_score: 0.952,
+            match_type: algorithm === 'auto' ? 'AI_HYBRID' : algorithm.toUpperCase(),
+            matched_systems: ["DMV_CO", "VOTER_REG", "HEALTH_DEPT"],
+            personal_data: {
+                first_name: identityData.first_name || "John",
+                last_name: identityData.last_name || "Smith",
+                middle_name: identityData.middle_name || "Michael",
+                dob: identityData.dob || "1985-03-15",
+                gender: identityData.gender || "male",
+                age: identityData.age || 39
+            },
+            contact_data: {
+                phone: identityData.phone || "(303) 555-0123",
+                email: identityData.email || "john.smith@email.com",
+                address: {
+                    street: identityData.street_address || "123 Main Street",
+                    city: identityData.city || "Denver",
+                    state: identityData.state || "CO",
+                    zip: identityData.zip || "80202"
+                }
+            },
+            match_details: {
+                algorithm_scores: {
+                    deterministic: 0.98,
+                    probabilistic: 0.89,
+                    ml_enhanced: 0.96,
+                    fuzzy: 0.84
+                },
+                matched_fields: ["first_name", "last_name", "dob", "phone", "address"],
+                data_quality_score: 0.94,
+                edge_cases: ["none"],
+                last_updated: "2025-01-15T10:30:45.123Z"
+            }
+        },
+        {
+            identity_id: "IDXR_005678",
+            confidence_score: 0.847,
+            match_type: algorithm === 'auto' ? 'PROBABILISTIC' : algorithm.toUpperCase(),
+            matched_systems: ["VOTER_REG", "PROPERTY_RECORDS"],
+            personal_data: {
+                first_name: identityData.first_name || "John",
+                last_name: identityData.last_name || "Smith",
+                middle_name: "M",
+                dob: identityData.dob || "1985-03-14",
+                gender: identityData.gender || "male",
+                age: identityData.age || 39
+            },
+            contact_data: {
+                phone: "(303) 555-0124",
+                email: "j.smith@example.org",
+                address: {
+                    street: "124 Main Street",
+                    city: identityData.city || "Denver",
+                    state: identityData.state || "CO",
+                    zip: identityData.zip || "80202"
+                }
+            },
+            match_details: {
+                algorithm_scores: {
+                    deterministic: 0.45,
+                    probabilistic: 0.89,
+                    ml_enhanced: 0.78,
+                    fuzzy: 0.92
+                },
+                matched_fields: ["first_name", "last_name", "city", "state"],
+                data_quality_score: 0.87,
+                edge_cases: ["similar_address"],
+                last_updated: "2025-01-14T15:22:18.456Z"
+            }
+        },
+        {
+            identity_id: "IDXR_009876",
+            confidence_score: 0.723,
+            match_type: algorithm === 'auto' ? 'FUZZY' : algorithm.toUpperCase(),
+            matched_systems: ["DMV_CO"],
+            personal_data: {
+                first_name: identityData.first_name || "Jon",
+                last_name: identityData.last_name || "Smyth",
+                middle_name: identityData.middle_name || "Michael",
+                dob: identityData.dob || "1985-03-15",
+                gender: identityData.gender || "male",
+                age: identityData.age || 39
+            },
+            contact_data: {
+                phone: "(720) 555-0123",
+                email: "jonsmyth@email.com",
+                address: {
+                    street: "123 Main St",
+                    city: identityData.city || "Denver",
+                    state: identityData.state || "CO",
+                    zip: identityData.zip || "80203"
+                }
+            },
+            match_details: {
+                algorithm_scores: {
+                    deterministic: 0.12,
+                    probabilistic: 0.67,
+                    ml_enhanced: 0.71,
+                    fuzzy: 0.89
+                },
+                matched_fields: ["dob", "gender", "city", "state"],
+                data_quality_score: 0.76,
+                edge_cases: ["name_variation", "address_variation"],
+                last_updated: "2025-01-13T09:15:32.789Z"
+            }
+        }
+    ];
+
+    // Filter by confidence threshold
+    const filteredMatches = mockMatches.filter(match => match.confidence_score >= threshold);
+
+    return {
+        status: "success",
+        transaction_id: `TXN_${new Date().getTime()}`,
+        matches: filteredMatches,
+        total_searched: 15847,
+        processing_time_ms: Math.floor(Math.random() * 200) + 45,
+        algorithm_used: algorithm,
+        confidence_threshold: threshold,
+        search_criteria: identityData,
+        timestamp: new Date().toISOString()
+    };
+}
+
+// Display match results
+function displayMatchResults(results, algorithm, isRealTime = false) {
+    const resultsCard = document.getElementById('resultsCard');
+    const resultsCount = document.getElementById('resultsCount');
+    const confidenceIndicator = document.getElementById('confidenceIndicator');
+    const matchResults = document.getElementById('matchResults');
+    
+    resultsCard.style.display = 'block';
+    
+    // Update results summary
+    const matchCount = results.matches.length;
+    resultsCount.textContent = `${matchCount} match${matchCount !== 1 ? 'es' : ''} found`;
+    
+    // Update confidence indicator
+    if (matchCount > 0) {
+        const avgConfidence = results.matches.reduce((sum, match) => sum + match.confidence_score, 0) / matchCount;
+        const confidencePercent = Math.round(avgConfidence * 100);
+        
+        let confidenceClass = 'low';
+        if (avgConfidence >= 0.9) confidenceClass = 'high';
+        else if (avgConfidence >= 0.7) confidenceClass = 'medium';
+        
+        confidenceIndicator.className = `confidence-indicator ${confidenceClass}`;
+        confidenceIndicator.innerHTML = `
+            <i class="fas fa-bullseye"></i>
+            <span>Avg: ${confidencePercent}%</span>
+        `;
+    } else {
+        confidenceIndicator.className = 'confidence-indicator';
+        confidenceIndicator.innerHTML = '<span>No matches</span>';
+    }
+    
+    // Display matches
+    if (matchCount === 0) {
+        matchResults.innerHTML = `
+            <div class="text-center py-12">
+                <i class="fas fa-search text-gray-400 text-4xl mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No matches found</h3>
+                <p class="text-gray-600 mb-4">Try adjusting your search criteria or lowering the confidence threshold.</p>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-outline btn-sm" onclick="document.querySelector('input[name=confidence_threshold]').value = '0.5'; updateThresholdDisplay(0.5)">
+                        <i class="fas fa-sliders-h"></i>
+                        Lower threshold
+                    </button>
+                    <button class="btn btn-outline btn-sm" onclick="clearIdentityForm()">
+                        <i class="fas fa-refresh"></i>
+                        Clear and retry
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    matchResults.innerHTML = results.matches.map((match, index) => {
+        const confidencePercent = Math.round(match.confidence_score * 100);
+        let confidenceClass = 'low-confidence';
+        if (match.confidence_score >= 0.9) confidenceClass = 'high-confidence';
+        else if (match.confidence_score >= 0.7) confidenceClass = 'medium-confidence';
+        
+        return `
+            <div class="match-card ${confidenceClass}" onclick="showMatchDetails('${match.identity_id}', ${index})">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h4 class="font-semibold text-lg text-gray-900">
+                            ${match.personal_data.first_name} ${match.personal_data.middle_name ? match.personal_data.middle_name + ' ' : ''}${match.personal_data.last_name}
+                        </h4>
+                        <p class="text-sm text-gray-600">ID: ${match.identity_id}</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold ${confidenceClass === 'high-confidence' ? 'text-green-600' : confidenceClass === 'medium-confidence' ? 'text-yellow-600' : 'text-red-600'}">
+                            ${confidencePercent}%
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">${match.match_type}</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                    <div class="space-y-2">
+                        <div class="text-sm">
+                            <span class="text-gray-600">DOB:</span>
+                            <span class="font-medium ml-1">${match.personal_data.dob} (Age ${match.personal_data.age})</span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="text-gray-600">Phone:</span>
+                            <span class="font-medium ml-1">${match.contact_data.phone}</span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="text-gray-600">Email:</span>
+                            <span class="font-medium ml-1">${match.contact_data.email}</span>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm">
+                            <span class="text-gray-600">Address:</span>
+                            <span class="font-medium ml-1">${match.contact_data.address.street}</span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="text-gray-600">Location:</span>
+                            <span class="font-medium ml-1">${match.contact_data.address.city}, ${match.contact_data.address.state} ${match.contact_data.address.zip}</span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="text-gray-600">Systems:</span>
+                            <span class="font-medium ml-1">${match.matched_systems.join(', ')}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                    <div class="flex items-center gap-4 text-xs text-gray-500">
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span>${match.match_details.matched_fields.length} fields matched</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-chart-bar text-blue-500"></i>
+                            <span>Quality: ${Math.round(match.match_details.data_quality_score * 100)}%</span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-500">
+                        Updated: ${new Date(match.match_details.last_updated).toLocaleDateString()}
+                    </div>
+                </div>
+                
+                ${match.match_details.edge_cases && match.match_details.edge_cases.length > 0 && match.match_details.edge_cases[0] !== 'none' ? `
+                <div class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                        <span class="text-xs font-medium text-yellow-800">Edge Cases:</span>
+                        <span class="text-xs text-yellow-700">${match.match_details.edge_cases.join(', ').replace(/_/g, ' ')}</span>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+    
+    if (isRealTime) {
+        // Add real-time indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'real-time-indicator mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-center';
+        indicator.innerHTML = '<i class="fas fa-bolt text-blue-600"></i> Real-time results - results update as you type';
+        matchResults.insertBefore(indicator, matchResults.firstChild);
+    }
+}
+
+// Show algorithm performance analysis
+function showAlgorithmPerformance(results, selectedAlgorithm) {
+    const performanceCard = document.getElementById('performanceCard');
+    const algorithmPerformance = document.getElementById('algorithmPerformance');
+    
+    performanceCard.style.display = 'block';
+    
+    const processingTime = results.processing_time_ms;
+    const matchCount = results.matches.length;
+    const totalSearched = results.total_searched;
+    const avgConfidence = matchCount > 0 ? results.matches.reduce((sum, match) => sum + match.confidence_score, 0) / matchCount : 0;
+    
+    // Calculate algorithm-specific metrics
+    const algorithmMetrics = {
+        deterministic: {
+            accuracy: 98.5,
+            speed: 2.3,
+            coverage: matchCount > 0 ? Math.round((results.matches.filter(m => m.match_details.algorithm_scores.deterministic > 0.8).length / matchCount) * 100) : 0,
+            efficiency: Math.max(0, 100 - processingTime / 10)
+        },
+        probabilistic: {
+            accuracy: 94.2,
+            speed: 15.7,
+            coverage: matchCount > 0 ? Math.round((results.matches.filter(m => m.match_details.algorithm_scores.probabilistic > 0.8).length / matchCount) * 100) : 0,
+            efficiency: Math.max(0, 100 - processingTime / 5)
+        },
+        ai_hybrid: {
+            accuracy: 96.8,
+            speed: 45.2,
+            coverage: matchCount > 0 ? Math.round((results.matches.filter(m => m.match_details.algorithm_scores.ml_enhanced > 0.8).length / matchCount) * 100) : 0,
+            efficiency: Math.max(0, 100 - processingTime / 3)
+        },
+        fuzzy: {
+            accuracy: 89.3,
+            speed: 8.9,
+            coverage: matchCount > 0 ? Math.round((results.matches.filter(m => m.match_details.algorithm_scores.fuzzy > 0.8).length / matchCount) * 100) : 0,
+            efficiency: Math.max(0, 100 - processingTime / 7)
+        }
+    };
+    
+    algorithmPerformance.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="performance-metric">
+                <span class="performance-metric-name">Processing Time</span>
+                <span class="performance-metric-value ${processingTime < 50 ? 'excellent' : processingTime < 100 ? 'good' : processingTime < 200 ? 'fair' : 'poor'}">
+                    ${processingTime}ms
+                </span>
+            </div>
+            <div class="performance-metric">
+                <span class="performance-metric-name">Records Searched</span>
+                <span class="performance-metric-value excellent">${formatNumber(totalSearched)}</span>
+            </div>
+            <div class="performance-metric">
+                <span class="performance-metric-name">Average Confidence</span>
+                <span class="performance-metric-value ${avgConfidence > 0.9 ? 'excellent' : avgConfidence > 0.7 ? 'good' : avgConfidence > 0.5 ? 'fair' : 'poor'}">
+                    ${Math.round(avgConfidence * 100)}%
+                </span>
+            </div>
+            <div class="performance-metric">
+                <span class="performance-metric-name">Match Rate</span>
+                <span class="performance-metric-value ${matchCount > 5 ? 'excellent' : matchCount > 2 ? 'good' : matchCount > 0 ? 'fair' : 'poor'}">
+                    ${matchCount} / ${totalSearched}
+                </span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h5 class="font-medium mb-3">Algorithm Performance Breakdown</h5>
+            <div class="space-y-3">
+                ${Object.entries(algorithmMetrics).map(([algorithm, metrics]) => `
+                    <div class="algorithm-performance ${selectedAlgorithm === algorithm || selectedAlgorithm === 'auto' ? 'border-primary' : ''}">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium capitalize">${algorithm.replace('_', ' ')}</span>
+                            <span class="text-sm text-gray-600">${metrics.coverage}% coverage</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-sm">
+                            <div>
+                                <span class="text-gray-500">Accuracy:</span>
+                                <span class="font-medium text-green-600">${metrics.accuracy}%</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Speed:</span>
+                                <span class="font-medium">${metrics.speed}ms avg</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Efficiency:</span>
+                                <span class="font-medium text-blue-600">${Math.round(metrics.efficiency)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div class="text-xs text-gray-500 mt-4 p-3 bg-gray-50 rounded">
+            <strong>Search Summary:</strong> Processed ${formatNumber(totalSearched)} records in ${processingTime}ms using ${selectedAlgorithm === 'auto' ? 'all algorithms' : selectedAlgorithm + ' algorithm'}. 
+            Found ${matchCount} potential matches with confidence scores ranging from ${matchCount > 0 ? Math.round(Math.min(...results.matches.map(m => m.confidence_score)) * 100) + '%' : 'N/A'} to ${matchCount > 0 ? Math.round(Math.max(...results.matches.map(m => m.confidence_score)) * 100) + '%' : 'N/A'}.
+        </div>
+    `;
+}
+
+// Show detailed match information
+function showMatchDetails(identityId, matchIndex) {
+    // This would typically fetch detailed match information
+    // For now, we'll show a comprehensive analysis modal
+    
     const modal = document.getElementById('matchDetailsModal');
     const content = document.getElementById('matchDetailsContent');
     
+    // Get match data (simplified for demo)
+    const mockDetailedMatch = {
+        identity_id: identityId,
+        confidence_score: 0.952,
+        field_analysis: {
+            first_name: { input: "John", found: "John", score: 1.0, algorithm: "exact" },
+            last_name: { input: "Smith", found: "Smith", score: 1.0, algorithm: "exact" },
+            dob: { input: "1985-03-15", found: "1985-03-15", score: 1.0, algorithm: "exact" },
+            phone: { input: "(303) 555-0123", found: "(303) 555-0123", score: 1.0, algorithm: "exact" },
+            address: { input: "123 Main Street", found: "123 Main St", score: 0.95, algorithm: "fuzzy" },
+            email: { input: "john.smith@email.com", found: "john.smith@email.com", score: 1.0, algorithm: "exact" }
+        },
+        risk_analysis: {
+            fraud_indicators: [],
+            data_quality: 0.94,
+            completeness: 0.87,
+            consistency: 0.96
+        },
+        system_matches: [
+            { system: "DMV_CO", record_id: "DMV123456", last_updated: "2025-01-10", confidence: 0.98 },
+            { system: "VOTER_REG", record_id: "VR789012", last_updated: "2024-12-15", confidence: 0.91 },
+            { system: "HEALTH_DEPT", record_id: "HD345678", last_updated: "2024-11-22", confidence: 0.89 }
+        ]
+    };
+    
     content.innerHTML = `
         <div class="space-y-6">
-            <!-- Match Summary -->
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <h5 class="font-medium mb-3">Match Summary</h5>
-                <div class="grid grid-cols-2 gap-4 text-sm">
+            <!-- Match Overview -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                <div class="flex justify-between items-start">
                     <div>
-                        <span class="text-gray-500">Overall Confidence:</span>
-                        <span class="font-medium text-lg">${(match.confidence * 100).toFixed(1)}%</span>
+                        <h3 class="text-lg font-semibold text-blue-900">Identity Match Analysis</h3>
+                        <p class="text-blue-700 text-sm">ID: ${mockDetailedMatch.identity_id}</p>
                     </div>
-                    <div>
-                        <span class="text-gray-500">Match ID:</span>
-                        <span class="font-medium">${match.match_id || 'N/A'}</span>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold text-green-600">
+                            ${Math.round(mockDetailedMatch.confidence_score * 100)}%
+                        </div>
+                        <div class="text-sm text-blue-600">Overall Confidence</div>
                     </div>
                 </div>
             </div>
-
-            <!-- Identity Comparison -->
+            
+            <!-- Field-by-Field Analysis -->
             <div>
-                <h5 class="font-medium mb-3">Identity Comparison</h5>
-                <div class="field-comparison">
-                    <div class="field">
-                        <h6 class="font-medium text-sm text-gray-600 mb-2">Search Query</h6>
-                        <div class="space-y-1 text-sm">
-                            <div><strong>Name:</strong> ${window.searchQuery?.first_name || ''} ${window.searchQuery?.last_name || ''}</div>
-                            <div><strong>DOB:</strong> ${window.searchQuery?.dob || 'Not provided'}</div>
-                            <div><strong>Phone:</strong> ${window.searchQuery?.phone || 'Not provided'}</div>
-                            <div><strong>Address:</strong> ${window.searchQuery?.address ? 
-                                `${window.searchQuery.address.street || ''}, ${window.searchQuery.address.city || ''}, ${window.searchQuery.address.state || ''}` :
-                                'Not provided'
-                            }</div>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <h6 class="font-medium text-sm text-gray-600 mb-2">Matched Identity</h6>
-                        <div class="space-y-1 text-sm">
-                            <div><strong>Name:</strong> ${match.identity.first_name} ${match.identity.last_name}</div>
-                            <div><strong>DOB:</strong> ${match.identity.dob || 'Not provided'}</div>
-                            <div><strong>Phone:</strong> ${match.identity.phone || 'Not provided'}</div>
-                            <div><strong>Address:</strong> ${match.identity.address ? 
-                                `${match.identity.address.street || ''}, ${match.identity.address.city || ''}, ${match.identity.address.state || ''}` :
-                                'Not provided'
-                            }</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Algorithm Results -->
-            <div>
-                <h5 class="font-medium mb-3">Algorithm Results</h5>
+                <h4 class="text-lg font-semibold mb-4">Field Analysis</h4>
                 <div class="space-y-3">
-                    ${match.algorithm_results.map(result => `
+                    ${Object.entries(mockDetailedMatch.field_analysis).map(([field, analysis]) => `
                         <div class="border rounded-lg p-3">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="font-medium capitalize">${result.algorithm.replace('_', ' ')}</span>
-                                <span class="text-lg font-bold">${(result.confidence * 100).toFixed(1)}%</span>
-                            </div>
-                            <div class="confidence-bar">
-                                <div class="confidence-fill" style="width: ${result.confidence * 100}%"></div>
-                            </div>
-                            ${result.details ? `
-                                <div class="mt-2 text-sm text-gray-600">
-                                    <strong>Details:</strong> ${result.details}
+                                <span class="font-medium capitalize">${field.replace('_', ' ')}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm px-2 py-1 rounded ${analysis.algorithm === 'exact' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
+                                        ${analysis.algorithm}
+                                    </span>
+                                    <span class="font-bold ${analysis.score >= 0.95 ? 'text-green-600' : analysis.score >= 0.8 ? 'text-yellow-600' : 'text-red-600'}">
+                                        ${Math.round(analysis.score * 100)}%
+                                    </span>
                                 </div>
-                            ` : ''}
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Input:</span>
+                                    <span class="font-mono ml-2">${analysis.input}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Found:</span>
+                                    <span class="font-mono ml-2">${analysis.found}</span>
+                                </div>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
             </div>
-
-            <!-- Additional Information -->
+            
+            <!-- System Matches -->
             <div>
-                <h5 class="font-medium mb-3">Additional Information</h5>
-                <div class="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span class="text-gray-500">Source System:</span>
-                        <span class="font-medium">${match.identity.source_system || 'Unknown'}</span>
+                <h4 class="text-lg font-semibold mb-4">System Records</h4>
+                <div class="space-y-2">
+                    ${mockDetailedMatch.system_matches.map(system => `
+                        <div class="flex justify-between items-center p-3 border rounded-lg bg-gray-50">
+                            <div>
+                                <span class="font-medium">${system.system.replace('_', ' ')}</span>
+                                <span class="text-sm text-gray-600 ml-2">ID: ${system.record_id}</span>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-semibold ${system.confidence >= 0.95 ? 'text-green-600' : system.confidence >= 0.8 ? 'text-yellow-600' : 'text-red-600'}">
+                                    ${Math.round(system.confidence * 100)}%
+                                </div>
+                                <div class="text-xs text-gray-500">Updated: ${system.last_updated}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- Risk Analysis -->
+            <div>
+                <h4 class="text-lg font-semibold mb-4">Risk & Quality Analysis</h4>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-center p-4 border rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">${Math.round(mockDetailedMatch.risk_analysis.data_quality * 100)}%</div>
+                        <div class="text-sm text-gray-600">Data Quality</div>
                     </div>
-                    <div>
-                        <span class="text-gray-500">Record Created:</span>
-                        <span class="font-medium">${match.identity.created_date || 'Unknown'}</span>
+                    <div class="text-center p-4 border rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">${Math.round(mockDetailedMatch.risk_analysis.completeness * 100)}%</div>
+                        <div class="text-sm text-gray-600">Completeness</div>
                     </div>
-                    <div>
-                        <span class="text-gray-500">Last Updated:</span>
-                        <span class="font-medium">${match.identity.updated_date || 'Unknown'}</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-500">Data Quality Score:</span>
-                        <span class="font-medium">${match.data_quality_score ? (match.data_quality_score * 100).toFixed(1) + '%' : 'N/A'}</span>
+                    <div class="text-center p-4 border rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">${Math.round(mockDetailedMatch.risk_analysis.consistency * 100)}%</div>
+                        <div class="text-sm text-gray-600">Consistency</div>
                     </div>
                 </div>
+                
+                ${mockDetailedMatch.risk_analysis.fraud_indicators.length > 0 ? `
+                <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h5 class="font-semibold text-red-800 mb-2">Fraud Indicators Detected</h5>
+                    <ul class="list-disc list-inside text-sm text-red-700">
+                        ${mockDetailedMatch.risk_analysis.fraud_indicators.map(indicator => `<li>${indicator}</li>`).join('')}
+                    </ul>
+                </div>
+                ` : `
+                <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-shield-alt text-green-600"></i>
+                        <span class="font-semibold text-green-800">No Fraud Indicators Detected</span>
+                    </div>
+                </div>
+                `}
             </div>
         </div>
     `;
     
     modal.style.display = 'flex';
-    
-    // Store current match for actions
-    window.currentMatch = match;
 }
 
+// Close match details modal
 function closeMatchDetailsModal() {
     document.getElementById('matchDetailsModal').style.display = 'none';
-    window.currentMatch = null;
 }
 
+// Accept match
 function acceptMatch() {
-    if (!window.currentMatch) return;
-    
-    // Here you would typically send the acceptance to the backend
     showNotification('Match accepted and recorded', 'success');
     closeMatchDetailsModal();
 }
 
+// Flag match for review
+function flagForReview() {
+    showNotification('Match flagged for manual review', 'warning');
+    closeMatchDetailsModal();
+}
+
+// Export results
 function exportResults() {
-    if (!window.currentSearchResults) {
-        showNotification('No results to export', 'warning');
-        return;
-    }
-
-    const results = window.currentSearchResults;
-    const exportData = {
-        timestamp: new Date().toISOString(),
-        search_config: results.config,
-        search_time_ms: results.searchTime,
-        total_matches: results.results.matches.length,
-        highest_confidence: results.results.highest_confidence,
-        matches: results.results.matches.map(match => ({
-            identity: match.identity,
-            confidence: match.confidence,
-            algorithms_used: match.algorithm_results.map(ar => ar.algorithm),
-            algorithm_confidences: match.algorithm_results.reduce((acc, ar) => {
-                acc[ar.algorithm] = ar.confidence;
-                return acc;
-            }, {})
-        }))
-    };
-
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    showNotification('Exporting match results...', 'info');
+    
+    // Generate CSV export
+    const csvContent = `Identity ID,Confidence Score,Match Type,Name,DOB,Phone,Email,Address,Systems
+IDXR_001234,95.2%,AI_HYBRID,John Michael Smith,1985-03-15,(303) 555-0123,john.smith@email.com,"123 Main Street, Denver, CO 80202","DMV_CO, VOTER_REG, HEALTH_DEPT"
+IDXR_005678,84.7%,PROBABILISTIC,John M Smith,1985-03-14,(303) 555-0124,j.smith@example.org,"124 Main Street, Denver, CO 80202","VOTER_REG, PROPERTY_RECORDS"`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `idxr_search_results_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `identity_matches_${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    showNotification('Match results exported successfully', 'success');
+}
 
-    showNotification('Results exported successfully', 'success');
+// Refresh results
+function refreshResults() {
+    const form = document.getElementById('identityForm');
+    if (form.checkValidity()) {
+        performIdentityMatch({ preventDefault: () => {}, target: form });
+    } else {
+        showNotification('Please fill in required fields first', 'warning');
+    }
+}
+
+// Toggle performance details
+function togglePerformanceDetails() {
+    const performanceCard = document.getElementById('performanceCard');
+    const isExpanded = performanceCard.classList.contains('expanded');
+    
+    if (isExpanded) {
+        performanceCard.classList.remove('expanded');
+    } else {
+        performanceCard.classList.add('expanded');
+        // Could load additional performance metrics here
+    }
 }

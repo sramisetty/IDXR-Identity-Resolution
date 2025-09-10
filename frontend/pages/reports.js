@@ -792,7 +792,12 @@ function setupPerformanceTrendsChart() {
 }
 
 function setupAlgorithmDistributionChart() {
-    const ctx = document.getElementById('algorithmDistributionChart').getContext('2d');
+    const canvas = document.getElementById('algorithmDistributionChart');
+    if (!canvas) {
+        console.error('Algorithm Distribution chart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
     
     chartInstances.algorithmDistribution = new Chart(ctx, {
         type: 'doughnut',
