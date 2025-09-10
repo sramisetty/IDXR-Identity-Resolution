@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDXR Batch Processing Guide</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
+    <style>
+        body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+            background-color: #f6f8fa;
+        }
+        .markdown-body {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .toc {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0969da;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 6px;
+        }
+        .toc ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 8px 0;
+        }
+        .code-block {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: rgba(175, 184, 193, 0.2);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 85%;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .btn-back {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #0969da;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .btn-back:hover {
+            background-color: #0550ae;
+        }
+        .section-divider {
+            border: none;
+            height: 2px;
+            background: linear-gradient(to right, #0969da, #7c3aed, #0969da);
+            margin: 40px 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="../admin-dashboard.html" class="btn-back">← Back to Dashboard</a>
+    
+    <div class="markdown-body">
+        <h1>IDXR Batch Processing Guide</h1>
+
+        <div class="highlight">
+            <strong>📋 Quick Reference:</strong> This guide covers all batch processing types, data sources, output formats, and required schemas for the IDXR Identity Resolution System.
+        </div>
+
+        <h2>Overview</h2>
+        <p>The IDXR Batch Processing system provides comprehensive identity resolution, data quality assessment, and data transformation capabilities through an intuitive web interface. This guide covers all processing types, data sources, output formats, and required data schemas.</p>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#processing-types">Processing Types</a></li>
+                <li><a href="#data-sources">Data Sources</a></li>
+                <li><a href="#output-formats">Output Formats</a></li>
+                <li><a href="#data-schemas">Data Schemas</a></li>
+                <li><a href="#configuration-examples">Configuration Examples</a></li>
+                <li><a href="#api-reference">API Reference</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+            </ul>
+        </div>
+
+        <hr class="section-divider">
+
+        <h2 id="processing-types">Processing Types</h2>
+
+        <h3>1. Identity Matching</h3>
+        <p><strong>Purpose:</strong> Match records against existing identities using multiple algorithms.</p>
+        
+        <p><strong>Configuration Options:</strong></p>
+        <ul>
+            <li><code>match_threshold</code>: Confidence threshold (0.0-1.0, default: 0.85)</li>
+            <li><code>use_ai</code>: Enable AI hybrid matching (default: true)</li>
+            <li><code>algorithms</code>: Array of algorithms to use
+                <ul>
+                    <li><code>deterministic</code>: Exact field matching</li>
+                    <li><code>probabilistic</code>: Fuzzy matching with scoring</li>
+                    <li><code>ai_hybrid</code>: Machine learning-based matching</li>
+                </ul>
+            </li>
+        </ul>
+
+        <p><strong>Use Cases:</strong></p>
+        <ul>
+            <li>Customer deduplication</li>
+            <li>Identity verification</li>
+            <li>Record linkage across systems</li>
+        </ul>
+
+        <h3>2. Data Validation</h3>
+        <p><strong>Purpose:</strong> Validate data quality and format compliance.</p>
+        
+        <p><strong>Configuration Options:</strong></p>
+        <ul>
+            <li><code>validation_level</code>: Validation strictness
+                <ul>
+                    <li><code>basic</code>: Field presence and format</li>
+                    <li><code>standard</code>: Enhanced validation rules</li>
+                    <li><code>comprehensive</code>: Full quality assessment</li>
+                </ul>
+            </li>
+            <li><code>min_quality_threshold</code>: Minimum acceptable quality score (0-100)</li>
+        </ul>
+
+        <p><strong>Validation Checks:</strong></p>
+        <ul>
+            <li>Email format validation</li>
+            <li>Phone number format validation</li>
+            <li>SSN format validation</li>
+            <li>Date format validation</li>
+            <li>Address completeness</li>
+            <li>Name character validation</li>
+        </ul>
+
+        <h3>3. Data Quality Assessment</h3>
+        <p><strong>Purpose:</strong> Comprehensive analysis of data quality with improvement suggestions.</p>
+        
+        <p><strong>Configuration Options:</strong></p>
+        <ul>
+            <li><code>apply_cleaning</code>: Automatically clean and standardize data</li>
+            <li><code>validation_level</code>: Depth of quality analysis</li>
+        </ul>
+
+        <p><strong>Quality Metrics:</strong></p>
+        <ul>
+            <li>Overall quality score (0-100)</li>
+            <li>Field-level quality scores</li>
+            <li>Completeness percentage</li>
+            <li>Format consistency</li>
+            <li>Data standardization suggestions</li>
+        </ul>
+
+        <h3>4. Deduplication</h3>
+        <p><strong>Purpose:</strong> Identify and remove duplicate records within a dataset.</p>
+        
+        <p><strong>Configuration Options:</strong></p>
+        <ul>
+            <li><code>similarity_threshold</code>: Minimum similarity for duplicates (0.0-1.0)</li>
+            <li><code>algorithms</code>: Matching algorithms to use</li>
+            <li><code>merge_strategy</code>: How to handle duplicates
+                <ul>
+                    <li><code>keep_first</code>: Keep first occurrence</li>
+                    <li><code>keep_best</code>: Keep highest quality record</li>
+                    <li><code>merge_fields</code>: Combine information</li>
+                </ul>
+            </li>
+        </ul>
+
+        <p><strong>Output:</strong></p>
+        <ul>
+            <li>Duplicate groups</li>
+            <li>Confidence scores</li>
+            <li>Recommended actions</li>
+        </ul>
+
+        <h3>5. Household Detection</h3>
+        <p><strong>Purpose:</strong> Group records by household relationships and address patterns.</p>
+        
+        <p><strong>Configuration Options:</strong></p>
+        <ul>
+            <li><code>address_grouping</code>: Group by physical address</li>
+            <li><code>name_pattern_analysis</code>: Analyze name relationships</li>
+            <li><code>relationship_inference</code>: Infer family relationships</li>
+        </ul>
+
+        <p><strong>Detection Criteria:</strong></p>
+        <ul>
+            <li>Shared addresses</li>
+            <li>Similar last names</li>
+            <li>Age patterns (adults/children)</li>
+            <li>Contact information overlap</li>
+        </ul>
+
+        <h3>6. Bulk Export</h3>
+        <p><strong>Purpose:</strong> Transform and export data in various formats with field mapping.</p>
+        
+        <p><strong>Configuration Options:</strong></p>
+        <ul>
+            <li><code>export_format</code>: Output format (csv, json, excel, parquet)</li>
+            <li><code>field_mappings</code>: Source to target field mapping</li>
+            <li><code>include_metadata</code>: Add processing metadata</li>
+            <li><code>anonymize_fields</code>: List of fields to anonymize</li>
+        </ul>
+
+        <p><strong>Anonymization Options:</strong></p>
+        <ul>
+            <li>SSN: Show only last 4 digits</li>
+            <li>Phone: Show only area code</li>
+            <li>Email: Show only domain</li>
+            <li>Address: Generic masking</li>
+        </ul>
+
+        <hr class="section-divider">
+
+        <h2 id="data-sources">Data Sources</h2>
+
+        <h3>1. File Upload</h3>
+        <p><strong>Supported Formats:</strong></p>
+        <ul>
+            <li>CSV (Comma-separated values)</li>
+            <li>XLSX (Excel files)</li>
+            <li>JSON (JavaScript Object Notation)</li>
+            <li>Parquet (Columnar format)</li>
+        </ul>
+
+        <p><strong>Configuration:</strong></p>
+        <pre><code>{
+  "type": "file_upload",
+  "format": "auto_detect",
+  "encoding": "utf-8",
+  "delimiter": "," // For CSV files
+}</code></pre>
+
+        <p><strong>File Requirements:</strong></p>
+        <ul>
+            <li>Maximum file size: 100MB</li>
+            <li>UTF-8 encoding recommended</li>
+            <li>First row should contain headers</li>
+        </ul>
+
+        <h3>2. Database Query</h3>
+        <p><strong>Supported Databases:</strong></p>
+        <ul>
+            <li>PostgreSQL</li>
+            <li>MySQL</li>
+            <li>SQL Server</li>
+            <li>Oracle</li>
+            <li>SQLite</li>
+        </ul>
+
+        <p><strong>Configuration:</strong></p>
+        <pre><code>{
+  "type": "database_query",
+  "database_type": "postgresql",
+  "connection_string": "host=localhost port=5432 dbname=idxr user=user password=***",
+  "query": "SELECT * FROM identities WHERE created_at > NOW() - INTERVAL '1 day'"
+}</code></pre>
+
+        <div class="highlight">
+            <strong>⚠️ Security Notes:</strong>
+            <ul>
+                <li>Use read-only database users</li>
+                <li>Limit query execution time</li>
+                <li>Validate SQL queries for safety</li>
+            </ul>
+        </div>
+
+        <h3>3. API Endpoint</h3>
+        <p><strong>Authentication Methods:</strong></p>
+        <ul>
+            <li>None (public APIs)</li>
+            <li>Bearer Token</li>
+            <li>API Key</li>
+            <li>Basic Authentication</li>
+        </ul>
+
+        <p><strong>Configuration:</strong></p>
+        <pre><code>{
+  "type": "api_endpoint",
+  "url": "https://api.example.com/identities",
+  "auth_method": "bearer",
+  "auth_value": "your-token-here",
+  "headers": {
+    "Content-Type": "application/json"
+  }
+}</code></pre>
+
+        <h3>4. Cloud Storage</h3>
+        <p><strong>Supported Providers:</strong></p>
+        <ul>
+            <li>AWS S3</li>
+            <li>Azure Blob Storage</li>
+            <li>Google Cloud Storage</li>
+        </ul>
+
+        <p><strong>Configuration:</strong></p>
+        <pre><code>{
+  "type": "cloud_storage",
+  "provider": "aws_s3",
+  "bucket_name": "your-bucket",
+  "file_path": "data/identities.csv",
+  "credentials": {
+    "access_key": "***",
+    "secret_key": "***"
+  }
+}</code></pre>
+
+        <hr class="section-divider">
+
+        <h2 id="output-formats">Output Formats</h2>
+
+        <h3>1. CSV (Comma-Separated Values)</h3>
+        <p><strong>Features:</strong></p>
+        <ul>
+            <li>Universal compatibility</li>
+            <li>Configurable delimiters</li>
+            <li>Header row support</li>
+        </ul>
+
+        <h3>2. JSON (JavaScript Object Notation)</h3>
+        <p><strong>Features:</strong></p>
+        <ul>
+            <li>Hierarchical data support</li>
+            <li>Metadata inclusion</li>
+            <li>Easy API integration</li>
+        </ul>
+
+        <h3>3. Excel (XLSX)</h3>
+        <p><strong>Features:</strong></p>
+        <ul>
+            <li>Multiple worksheets</li>
+            <li>Data formatting</li>
+            <li>Business-friendly format</li>
+        </ul>
+
+        <h3>4. Parquet</h3>
+        <p><strong>Features:</strong></p>
+        <ul>
+            <li>Columnar storage</li>
+            <li>High compression</li>
+            <li>Big data compatible</li>
+        </ul>
+
+        <hr class="section-divider">
+
+        <h2 id="data-schemas">Data Schemas</h2>
+
+        <h3>Required Fields</h3>
+        <p><strong>Minimum Required:</strong></p>
+        <pre><code>{
+  "record_id": "string (unique identifier)",
+  "first_name": "string",
+  "last_name": "string"
+}</code></pre>
+
+        <p><strong>Recommended Fields:</strong></p>
+        <pre><code>{
+  "record_id": "string",
+  "first_name": "string",
+  "last_name": "string",
+  "middle_name": "string (optional)",
+  "dob": "string (YYYY-MM-DD format)",
+  "ssn": "string (XXX-XX-XXXX format)",
+  "phone": "string (any format)",
+  "email": "string (valid email format)",
+  "address": {
+    "street": "string",
+    "city": "string",
+    "state": "string (2-letter code)",
+    "zip": "string"
+  },
+  "created_at": "string (ISO 8601 format)",
+  "updated_at": "string (ISO 8601 format)"
+}</code></pre>
+
+        <h3>Field Validation Rules</h3>
+        <ul>
+            <li><strong>Name Fields:</strong> Only alphabetic characters and spaces, max 50 characters</li>
+            <li><strong>Date of Birth:</strong> Format YYYY-MM-DD, valid range 1900-current date</li>
+            <li><strong>SSN:</strong> Format XXX-XX-XXXX or XXXXXXXXX, 9 digits total</li>
+            <li><strong>Phone:</strong> Multiple formats supported, minimum 10 digits</li>
+            <li><strong>Email:</strong> RFC 5322 compliant, max 320 characters</li>
+            <li><strong>Address:</strong> Street required for address-based processing</li>
+        </ul>
+
+        <hr class="section-divider">
+
+        <h2 id="configuration-examples">Configuration Examples</h2>
+
+        <h3>Example 1: High Precision Identity Matching</h3>
+        <pre><code>{
+  "name": "High Precision Identity Matching",
+  "job_type": "identity_matching",
+  "config": {
+    "match_threshold": 0.95,
+    "use_ai": true,
+    "algorithms": ["deterministic", "ai_hybrid"]
+  },
+  "data_source": {
+    "type": "file_upload",
+    "format": "csv"
+  },
+  "output_config": {
+    "format": "json",
+    "include_metadata": true,
+    "anonymize_fields": ["ssn"]
+  }
+}</code></pre>
+
+        <h3>Example 2: Comprehensive Data Validation</h3>
+        <pre><code>{
+  "name": "Comprehensive Data Validation",
+  "job_type": "data_validation",
+  "config": {
+    "validation_level": "comprehensive",
+    "min_quality_threshold": 85.0
+  },
+  "data_source": {
+    "type": "database_query",
+    "database_type": "postgresql",
+    "query": "SELECT * FROM customer_data WHERE status = 'pending'"
+  },
+  "output_config": {
+    "format": "excel",
+    "include_metadata": true
+  }
+}</code></pre>
+
+        <hr class="section-divider">
+
+        <h2 id="api-reference">API Reference</h2>
+
+        <h3>Create Batch Job</h3>
+        <p><strong>Endpoint:</strong> <code>POST /api/v1/batch/jobs</code></p>
+
+        <p><strong>Request Body:</strong></p>
+        <pre><code>{
+  "name": "Job Name",
+  "job_type": "identity_matching|data_validation|data_quality|deduplication|household_detection|bulk_export",
+  "priority": "low|normal|high",
+  "created_by": "user_id",
+  "input_data": [...], // For direct data submission
+  "config": {...}, // Processing configuration
+  "data_source": {...}, // Data source configuration
+  "output_config": {...} // Output format configuration
+}</code></pre>
+
+        <p><strong>Response:</strong></p>
+        <pre><code>{
+  "status": "success",
+  "job_id": "BATCH_20240101_123456_abc123",
+  "message": "Batch job created successfully",
+  "estimated_processing_time": "5-10 minutes"
+}</code></pre>
+
+        <h3>Get Job Status</h3>
+        <p><strong>Endpoint:</strong> <code>GET /api/v1/batch/jobs/{job_id}</code></p>
+
+        <hr class="section-divider">
+
+        <h2 id="best-practices">Best Practices</h2>
+
+        <h3>Data Preparation</h3>
+        <div class="highlight">
+            <strong>💡 Tips:</strong>
+            <ul>
+                <li>Clean input data by removing empty rows and columns</li>
+                <li>Standardize date formats before processing</li>
+                <li>Use consistent naming conventions for field headers</li>
+                <li>Split large datasets (>1M records) into smaller batches</li>
+            </ul>
+        </div>
+
+        <h3>Performance Optimization</h3>
+        <ul>
+            <li><strong>Batch Size:</strong> Process 10K-100K records per job for optimal performance</li>
+            <li><strong>Field Selection:</strong> Include only necessary fields to improve speed</li>
+            <li><strong>Algorithm Choice:</strong> Use deterministic for exact matches, probabilistic for fuzzy matching</li>
+        </ul>
+
+        <h3>Security Considerations</h3>
+        <div class="highlight">
+            <strong>🔒 Security:</strong>
+            <ul>
+                <li>Use anonymization for sensitive fields (SSN, phone, email)</li>
+                <li>Implement proper access controls</li>
+                <li>Use strong API keys and rotate credentials regularly</li>
+                <li>Ensure GDPR/CCPA compliance for personal data</li>
+            </ul>
+        </div>
+
+        <hr class="section-divider">
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
+            <p><strong>Need Help?</strong></p>
+            <p>Contact your system administrator or check the processing logs for detailed error information.</p>
+            <p><em>Last Updated: September 2025 | Version: 1.0</em></p>
+        </div>
+    </div>
+</body>
+</html>

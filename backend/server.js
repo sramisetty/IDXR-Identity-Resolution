@@ -40,6 +40,9 @@ app.use(compression());
 // Logging
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
+// Static file serving for documentation
+app.use('/docs', express.static('docs'));
+
 // Public routes
 app.use('/api/health', healthRoutes);
 

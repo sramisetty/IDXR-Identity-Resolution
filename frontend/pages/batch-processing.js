@@ -67,6 +67,12 @@ function loadBatchProcessingPage() {
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Create New Batch Job</h3>
+                    <div class="card-actions">
+                        <a href="docs/batch-processing-guide.html" target="_blank" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-book"></i>
+                            Documentation
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <form id="batchJobForm" onsubmit="submitBatchJob(event)">
