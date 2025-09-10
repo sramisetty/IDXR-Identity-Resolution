@@ -28,6 +28,9 @@ from utils.cache import CacheManager
 from utils.logger import setup_logger
 from .data_source_service import DataSourceService, DataSourceConfig, DataSourceType, FileFormat
 from .output_format_service import OutputFormatService, OutputConfig, OutputFormat
+from .data_quality_service import DataQualityService, ValidationLevel, DataQuality
+from .household_services import HouseholdDetector
+from .data_transformation_service import DataTransformationService
 
 logger = setup_logger("batch_processing")
 
@@ -131,6 +134,11 @@ class BatchProcessingService:
         # Initialize data source and output services
         self.data_source_service = DataSourceService()
         self.output_format_service = OutputFormatService()
+        
+        # Initialize additional processing services
+        self.data_quality_service = DataQualityService()
+        self.household_detector = HouseholdDetector()
+        self.data_transformation_service = DataTransformationService()
         
         # Job processor task will be started manually when needed
         self._processor_task = None
@@ -492,6 +500,10 @@ class BatchProcessingService:
             return await self._process_data_quality(record, job.config)
         elif job.job_type == JobType.DEDUPLICATION:
             return await self._process_deduplication(record, job.config)
+        elif job.job_type == JobType.HOUSEHOLD_DETECTION:
+            return await self._process_household_detection(record, job.config)
+        elif job.job_type == JobType.BULK_EXPORT:
+            return await self._process_bulk_export(record, job.config)
         else:
             raise ValueError(f"Unsupported job type: {job.job_type}")
     
@@ -533,7 +545,7 @@ class BatchProcessingService:
             
             # AI hybrid matching if enabled
             if config.get('use_ai', True):
-                ai_matches = await self.ai_hybrid_matcher.match_identity(demo_data)
+                ai_matches = await self.ai_hybrid_matcher.match(demo_data)
                 matches.extend(ai_matches)
             
             # Filter and deduplicate
@@ -572,19 +584,204 @@ class BatchProcessingService:
     
     async def _process_data_validation(self, record: Dict[str, Any], config: Dict[str, Any]) -> BatchResult:
         """Process data validation for a record"""
-        # Implementation for data validation
-        # This would validate record fields, format, completeness, etc.
-        pass
+        try:
+            # Get validation level from config
+            validation_level_str = config.get('validation_level', 'standard')
+            try:
+                validation_level = ValidationLevel(validation_level_str)
+            except ValueError:
+                validation_level = ValidationLevel.STANDARD
+            
+            # Perform comprehensive data quality assessment
+            quality_report = await self.data_quality_service.assess_data_quality(
+                record, validation_level
+            )
+            
+            # Determine if validation passed
+            min_quality_threshold = config.get('min_quality_threshold', 70.0)
+            validation_passed = quality_report.overall_score >= min_quality_threshold
+            
+            # Compile validation details
+            validation_details = {
+                "overall_score": quality_report.overall_score,
+                "quality_level": quality_report.quality_level.value,
+                "critical_issues": quality_report.critical_issues,
+                "warnings": quality_report.warnings,
+                "recommendations": quality_report.recommendations,
+                "field_results": [
+                    {
+                        "field": result.field_name,
+                        "is_valid": result.is_valid,
+                        "quality_score": result.quality_score,
+                        "issues": result.issues,
+                        "suggestions": result.suggestions
+                    }
+                    for result in quality_report.field_results
+                ],
+                "processing_time_ms": quality_report.processing_time_ms
+            }
+            
+            return BatchResult(
+                record_id=record.get('record_id', str(uuid.uuid4())),
+                identity_id=None,
+                confidence_score=quality_report.overall_score / 100.0,
+                match_type="data_validation",
+                status="success" if validation_passed else "validation_failed",
+                error_message=None if validation_passed else f"Quality score {quality_report.overall_score:.1f} below threshold {min_quality_threshold}",
+                processing_time_ms=quality_report.processing_time_ms,
+                match_details=validation_details
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in data validation: {str(e)}")
+            return BatchResult(
+                record_id=record.get('record_id', str(uuid.uuid4())),
+                identity_id=None,
+                confidence_score=None,
+                match_type="data_validation",
+                status="error",
+                error_message=str(e)
+            )
     
     async def _process_data_quality(self, record: Dict[str, Any], config: Dict[str, Any]) -> BatchResult:
         """Process data quality assessment for a record"""
-        # Implementation for data quality assessment
-        pass
+        try:
+            # Perform data quality assessment
+            quality_report = await self.data_quality_service.assess_data_quality(record)
+            
+            # Apply data cleaning if requested
+            cleaned_data = record.copy()
+            if config.get('apply_cleaning', True):
+                cleaned_data = await self.data_quality_service.clean_data(record)
+            
+            # Calculate improvement metrics
+            original_completeness = sum(1 for k, v in record.items() if v is not None and str(v).strip()) / len(record)
+            cleaned_completeness = sum(1 for k, v in cleaned_data.items() if v is not None and str(v).strip()) / len(cleaned_data)
+            
+            quality_details = {
+                "original_score": quality_report.overall_score,
+                "quality_level": quality_report.quality_level.value,
+                "field_scores": {
+                    result.field_name: result.quality_score 
+                    for result in quality_report.field_results
+                },
+                "issues_found": len(quality_report.critical_issues) + len(quality_report.warnings),
+                "critical_issues": quality_report.critical_issues,
+                "warnings": quality_report.warnings,
+                "recommendations": quality_report.recommendations,
+                "original_completeness": original_completeness * 100,
+                "cleaned_completeness": cleaned_completeness * 100,
+                "improvement_applied": config.get('apply_cleaning', True),
+                "cleaned_fields": [
+                    result.field_name for result in quality_report.field_results 
+                    if result.cleaned_value is not None
+                ]
+            }
+            
+            return BatchResult(
+                record_id=record.get('record_id', str(uuid.uuid4())),
+                identity_id=None,
+                confidence_score=quality_report.overall_score / 100.0,
+                match_type="data_quality",
+                status="success",
+                processing_time_ms=quality_report.processing_time_ms,
+                match_details=quality_details
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in data quality assessment: {str(e)}")
+            return BatchResult(
+                record_id=record.get('record_id', str(uuid.uuid4())),
+                identity_id=None,
+                confidence_score=None,
+                match_type="data_quality",
+                status="error",
+                error_message=str(e)
+            )
     
     async def _process_deduplication(self, record: Dict[str, Any], config: Dict[str, Any]) -> BatchResult:
         """Process deduplication for a record"""
-        # Implementation for deduplication
-        pass
+        try:
+            # Get similarity threshold from config
+            similarity_threshold = config.get('similarity_threshold', 0.85)
+            
+            # Extract key fields for deduplication
+            demo_data = {
+                'first_name': record.get('first_name'),
+                'last_name': record.get('last_name'),
+                'dob': record.get('dob'),
+                'ssn': record.get('ssn'),
+                'phone': record.get('phone'),
+                'email': record.get('email'),
+                'address': record.get('address', {})
+            }
+            
+            # Remove None values
+            demo_data = {k: v for k, v in demo_data.items() if v is not None}
+            
+            # Find potential duplicates using identity matching algorithms
+            potential_duplicates = []
+            
+            # Use deterministic matching first (exact matches)
+            det_matches = await self.deterministic_matcher.match(demo_data)
+            potential_duplicates.extend(det_matches)
+            
+            # Use probabilistic matching for fuzzy duplicates
+            prob_matches = await self.probabilistic_matcher.match(demo_data)
+            potential_duplicates.extend(prob_matches)
+            
+            # Filter by similarity threshold
+            duplicates = [
+                dup for dup in potential_duplicates 
+                if dup.get('confidence_score', 0) >= similarity_threshold
+            ]
+            
+            # Deduplicate the duplicates list itself
+            duplicates = self._deduplicate_matches(duplicates)
+            
+            # Calculate deduplication metrics
+            dedup_details = {
+                "potential_duplicates_found": len(duplicates),
+                "similarity_threshold": similarity_threshold,
+                "highest_similarity": max([d.get('confidence_score', 0) for d in duplicates]) if duplicates else 0,
+                "duplicate_identities": [
+                    {
+                        "identity_id": dup.get('identity_id'),
+                        "confidence_score": dup.get('confidence_score'),
+                        "match_type": dup.get('match_type'),
+                        "matched_fields": dup.get('matched_fields', [])
+                    }
+                    for dup in duplicates
+                ],
+                "algorithms_used": ["deterministic", "probabilistic"],
+                "total_matches_checked": len(potential_duplicates)
+            }
+            
+            # Determine status
+            status = "duplicates_found" if duplicates else "unique_record"
+            
+            # Use highest confidence as overall score
+            confidence_score = max([d.get('confidence_score', 0) for d in duplicates]) if duplicates else 0
+            
+            return BatchResult(
+                record_id=record.get('record_id', str(uuid.uuid4())),
+                identity_id=duplicates[0].get('identity_id') if duplicates else None,
+                confidence_score=confidence_score,
+                match_type="deduplication",
+                status=status,
+                match_details=dedup_details
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in deduplication: {str(e)}")
+            return BatchResult(
+                record_id=record.get('record_id', str(uuid.uuid4())),
+                identity_id=None,
+                confidence_score=None,
+                match_type="deduplication",
+                status="error",
+                error_message=str(e)
+            )
     
     def _deduplicate_matches(self, matches: List[Dict]) -> List[Dict]:
         """Remove duplicate matches"""
@@ -597,6 +794,243 @@ class BatchProcessingService:
                 unique_matches.append(match)
         
         return unique_matches
+    
+    async def _process_household_detection(self, record: Dict[str, Any], config: Dict[str, Any]) -> BatchResult:
+        """Process household detection for a record"""
+        try:
+            # For single record household detection, we need to find related identities
+            # This would typically require a dataset or database of existing identities
+            
+            # Extract address and demographic info
+            address = record.get('address', {})
+            if not address:
+                return BatchResult(
+                    record_id=record.get('record_id', str(uuid.uuid4())),
+                    identity_id=None,
+                    confidence_score=0.0,
+                    match_type="household_detection",
+                    status="insufficient_data",
+                    error_message="No address provided for household detection"
+                )
+            
+            # Create a mock household analysis based on available data
+            household_details = {
+                "address": address,
+                "analysis_type": "single_record_assessment",
+                "indicators": {
+                    "has_full_address": bool(address.get('street') and address.get('city') and address.get('state')),
+                    "address_type": self._classify_address_type(address),
+                    "household_composition_hints": self._analyze_household_hints(record)
+                },
+                "recommendations": []
+            }
+            
+            # Analyze name patterns for household hints
+            first_name = record.get('first_name', '')
+            last_name = record.get('last_name', '')
+            
+            if first_name and last_name:
+                household_details["recommendations"].append("Full name available for household grouping")
+            
+            # Check for age indicators
+            dob = record.get('dob')
+            if dob:
+                age = self._calculate_age_from_dob(dob)
+                if age:
+                    household_details["indicators"]["estimated_age"] = age
+                    household_details["indicators"]["life_stage"] = self._classify_life_stage(age)
+                    
+                    if age < 18:
+                        household_details["recommendations"].append("Minor detected - likely dependent in household")
+                    elif age > 65:
+                        household_details["recommendations"].append("Senior detected - may be head of household or dependent")
+            
+            # Score household detection potential
+            confidence_score = 0.0
+            if household_details["indicators"]["has_full_address"]:
+                confidence_score += 0.4
+            if household_details["indicators"].get("estimated_age"):
+                confidence_score += 0.3
+            if record.get('phone'):
+                confidence_score += 0.2
+                household_details["indicators"]["has_contact_info"] = True
+            if record.get('ssn'):
+                confidence_score += 0.1
+                
+            return BatchResult(
+                record_id=record.get('record_id', str(uuid.uuid4())),
+                identity_id=record.get('identity_id'),
+                confidence_score=confidence_score,
+                match_type="household_detection",
+                status="analyzed",
+                match_details=household_details
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in household detection: {str(e)}")
+            return BatchResult(
+                record_id=record.get('record_id', str(uuid.uuid4())),
+                identity_id=None,
+                confidence_score=None,
+                match_type="household_detection",
+                status="error",
+                error_message=str(e)
+            )
+    
+    async def _process_bulk_export(self, record: Dict[str, Any], config: Dict[str, Any]) -> BatchResult:
+        """Process bulk export formatting for a record"""
+        try:
+            # Get export format and transformation rules from config
+            export_format = config.get('export_format', 'csv')
+            field_mappings = config.get('field_mappings', {})
+            include_metadata = config.get('include_metadata', False)
+            anonymize_fields = config.get('anonymize_fields', [])
+            
+            # Apply field mappings
+            exported_record = {}
+            for source_field, target_field in field_mappings.items():
+                if source_field in record:
+                    exported_record[target_field] = record[source_field]
+            
+            # If no mappings provided, export all fields
+            if not field_mappings:
+                exported_record = record.copy()
+            
+            # Apply anonymization
+            for field in anonymize_fields:
+                if field in exported_record:
+                    exported_record[field] = self._anonymize_field(exported_record[field], field)
+            
+            # Add metadata if requested
+            if include_metadata:
+                exported_record['_export_timestamp'] = datetime.now().isoformat()
+                exported_record['_export_format'] = export_format
+                exported_record['_record_hash'] = hashlib.md5(
+                    json.dumps(record, sort_keys=True).encode()
+                ).hexdigest()[:8]
+            
+            # Calculate export quality metrics
+            original_fields = len([v for v in record.values() if v is not None])
+            exported_fields = len([v for v in exported_record.values() if v is not None])
+            
+            export_details = {
+                "export_format": export_format,
+                "original_field_count": len(record),
+                "exported_field_count": len(exported_record),
+                "field_mappings_applied": len(field_mappings),
+                "anonymized_fields": len(anonymize_fields),
+                "metadata_included": include_metadata,
+                "data_completeness": (exported_fields / len(exported_record)) * 100 if exported_record else 0,
+                "export_ready": True,
+                "exported_data": exported_record
+            }
+            
+            return BatchResult(
+                record_id=record.get('record_id', str(uuid.uuid4())),
+                identity_id=record.get('identity_id'),
+                confidence_score=1.0,  # Export is always successful if no errors
+                match_type="bulk_export",
+                status="export_ready",
+                match_details=export_details
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in bulk export: {str(e)}")
+            return BatchResult(
+                record_id=record.get('record_id', str(uuid.uuid4())),
+                identity_id=None,
+                confidence_score=None,
+                match_type="bulk_export",
+                status="error",
+                error_message=str(e)
+            )
+    
+    def _classify_address_type(self, address: Dict) -> str:
+        """Classify address type based on structure"""
+        street = address.get('street', '').lower()
+        
+        if 'po box' in street or 'p.o. box' in street:
+            return "po_box"
+        elif 'apt' in street or 'unit' in street or 'suite' in street:
+            return "apartment"
+        elif any(word in street for word in ['rural', 'route', 'rr']):
+            return "rural"
+        else:
+            return "residential"
+    
+    def _analyze_household_hints(self, record: Dict) -> List[str]:
+        """Analyze record for household composition hints"""
+        hints = []
+        
+        # Check for emergency contact information
+        if record.get('emergency_contact'):
+            hints.append("emergency_contact_present")
+        
+        # Check for dependent indicators
+        if record.get('guardian') or record.get('parent_name'):
+            hints.append("dependent_indicators")
+        
+        # Check for employment information
+        if record.get('employer') or record.get('occupation'):
+            hints.append("employment_info_available")
+        
+        return hints
+    
+    def _calculate_age_from_dob(self, dob_str: str) -> Optional[int]:
+        """Calculate age from date of birth string"""
+        try:
+            # Try different date formats
+            for fmt in ['%Y-%m-%d', '%m/%d/%Y', '%m-%d-%Y']:
+                try:
+                    dob = datetime.strptime(dob_str, fmt).date()
+                    today = date.today()
+                    age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+                    return age if 0 <= age <= 120 else None
+                except ValueError:
+                    continue
+            return None
+        except:
+            return None
+    
+    def _classify_life_stage(self, age: int) -> str:
+        """Classify life stage based on age"""
+        if age < 13:
+            return "child"
+        elif age < 18:
+            return "teenager"
+        elif age < 25:
+            return "young_adult"
+        elif age < 65:
+            return "adult"
+        else:
+            return "senior"
+    
+    def _anonymize_field(self, value: Any, field_name: str) -> str:
+        """Anonymize field value based on field type"""
+        if field_name.lower() in ['ssn', 'social_security']:
+            # Show only last 4 digits
+            ssn_digits = re.sub(r'[^\d]', '', str(value))
+            return f"***-**-{ssn_digits[-4:]}" if len(ssn_digits) >= 4 else "***-**-****"
+        
+        elif field_name.lower() in ['phone', 'phone_number']:
+            # Show only area code
+            phone_digits = re.sub(r'[^\d]', '', str(value))
+            return f"({phone_digits[:3]}) ***-****" if len(phone_digits) >= 3 else "***-***-****"
+        
+        elif field_name.lower() in ['email', 'email_address']:
+            # Show only domain
+            if '@' in str(value):
+                domain = str(value).split('@')[1]
+                return f"***@{domain}"
+            return "***@***.***"
+        
+        elif field_name.lower() in ['address', 'street']:
+            # Show only city/state
+            return "*** [ANONYMIZED]"
+        
+        else:
+            # Generic anonymization
+            return f"*** [{field_name.upper()}_ANONYMIZED]"
     
     async def _count_records_in_file(self, file_path: str) -> int:
         """Count records in input file"""
