@@ -8,7 +8,10 @@
       "Bash(npm start)",
       "Bash(taskkill:*)",
       "Bash(cmd //c:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm install)",
+      "Bash(findstr:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []
