@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 import uvicorn
 import os
@@ -21,9 +21,13 @@ from utils.logger import setup_logger
 from services.security_service import SecurityService, PrivacyService, ComplianceService
 from services.admin_service import AdminService
 from services.data_quality_service import DataQualityService
-from services.reporting_service import ReportingService
-from services.realtime_processor import RealtimeProcessor
+from services.reporting_service import ReportGenerator
+from services.realtime_processor import RealTimeProcessor
 from services.household_services import HouseholdDetector
+from services.batch_processing_service import BatchProcessingService, JobType, JobPriority, JobStatus
+from services.data_source_service import DataSourceService, DataSourceConfig, DataSourceType, FileFormat
+from services.output_format_service import OutputFormatService, OutputConfig, OutputFormat
+from services.data_transformation_service import DataTransformationService, DataMappingConfig, FieldType, TransformationType
 
 load_dotenv()
 
@@ -62,9 +66,13 @@ privacy_service = PrivacyService()
 compliance_service = ComplianceService()
 admin_service = AdminService()
 data_quality_service = DataQualityService()
-reporting_service = ReportingService()
-realtime_processor = RealtimeProcessor()
+reporting_service = ReportGenerator()
+realtime_processor = RealTimeProcessor()
 household_detector = HouseholdDetector()
+batch_processor = BatchProcessingService()
+data_source_service = DataSourceService()
+output_format_service = OutputFormatService()
+data_transformation_service = DataTransformationService()
 
 # Request/Response Models
 class DemographicData(BaseModel):
@@ -184,7 +192,7 @@ async def resolve_identity(request: IdentityResolutionRequest):
         
         # 4. Use AI hybrid matching for enhanced accuracy
         if request.use_ml:
-            ai_matches = await ai_hybrid_matcher.match_identity(demo_data)
+            ai_matches = await ai_hybrid_matcher.match(demo_data)
             matches.extend(ai_matches)
             
             # Apply ML enhancement to all matches
@@ -240,27 +248,294 @@ async def resolve_identity(request: IdentityResolutionRequest):
             detail=f"Identity resolution failed: {str(e)}"
         )
 
+# ========== COMPREHENSIVE BATCH PROCESSING ENDPOINTS ==========
+
+class BatchJobRequest(BaseModel):
+    name: str = Field(..., description="Job name")
+    job_type: str = Field(..., description="Job type: identity_matching, data_validation, household_detection, data_quality, deduplication")
+    input_data: Union[str, List[Dict], Dict] = Field(..., description="Input data: file path, list of records, or single record")
+    config: Optional[Dict[str, Any]] = Field(None, description="Job configuration")
+    priority: str = Field("normal", description="Job priority: low, normal, high, urgent")
+    created_by: str = Field("api_user", description="User who created the job")
+
+@app.post("/api/v1/batch/jobs")
+async def create_batch_job(request: BatchJobRequest):
+    """Create a new batch processing job"""
+    try:
+        # Validate job type
+        try:
+            job_type = JobType(request.job_type)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid job type: {request.job_type}"
+            )
+        
+        # Validate priority
+        try:
+            priority = JobPriority(request.priority)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid priority: {request.priority}"
+            )
+        
+        # Create job
+        job_id = await batch_processor.create_batch_job(
+            name=request.name,
+            job_type=job_type,
+            created_by=request.created_by,
+            input_data=request.input_data,
+            config=request.config,
+            priority=priority
+        )
+        
+        return {
+            "status": "success",
+            "job_id": job_id,
+            "message": "Batch job created successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating batch job: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create batch job: {str(e)}"
+        )
+
+@app.get("/api/v1/batch/jobs/{job_id}")
+async def get_batch_job_status(job_id: str):
+    """Get status of a specific batch job"""
+    try:
+        job_status = await batch_processor.get_job_status(job_id)
+        
+        if not job_status:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Job {job_id} not found"
+            )
+        
+        return {
+            "status": "success",
+            "job": job_status
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting job status: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get job status: {str(e)}"
+        )
+
+@app.get("/api/v1/batch/jobs")
+async def list_batch_jobs(
+    status_filter: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    """List all batch jobs with optional filtering"""
+    try:
+        # Validate status filter
+        job_status_filter = None
+        if status_filter:
+            try:
+                job_status_filter = JobStatus(status_filter)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid status filter: {status_filter}"
+                )
+        
+        jobs = await batch_processor.get_all_jobs(
+            status_filter=job_status_filter,
+            limit=limit,
+            offset=offset
+        )
+        
+        return {
+            "status": "success",
+            "jobs": jobs,
+            "count": len(jobs),
+            "limit": limit,
+            "offset": offset
+        }
+        
+    except Exception as e:
+        logger.error(f"Error listing jobs: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to list jobs: {str(e)}"
+        )
+
+@app.delete("/api/v1/batch/jobs/{job_id}")
+async def cancel_batch_job(job_id: str):
+    """Cancel a batch job"""
+    try:
+        success = await batch_processor.cancel_job(job_id)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Job {job_id} not found or cannot be cancelled"
+            )
+        
+        return {
+            "status": "success",
+            "message": f"Job {job_id} cancelled successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error cancelling job: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to cancel job: {str(e)}"
+        )
+
+@app.post("/api/v1/batch/jobs/{job_id}/pause")
+async def pause_batch_job(job_id: str):
+    """Pause a running batch job"""
+    try:
+        success = await batch_processor.pause_job(job_id)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Job {job_id} cannot be paused"
+            )
+        
+        return {
+            "status": "success",
+            "message": f"Job {job_id} paused successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error pausing job: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to pause job: {str(e)}"
+        )
+
+@app.post("/api/v1/batch/jobs/{job_id}/resume")
+async def resume_batch_job(job_id: str):
+    """Resume a paused batch job"""
+    try:
+        success = await batch_processor.resume_job(job_id)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Job {job_id} cannot be resumed"
+            )
+        
+        return {
+            "status": "success",
+            "message": f"Job {job_id} resumed successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error resuming job: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to resume job: {str(e)}"
+        )
+
+@app.get("/api/v1/batch/jobs/{job_id}/results")
+async def get_batch_job_results(
+    job_id: str,
+    page: int = 1,
+    limit: int = 100,
+    status_filter: Optional[str] = None
+):
+    """Get results for a completed batch job"""
+    try:
+        results = await batch_processor.get_job_results(
+            job_id=job_id,
+            page=page,
+            limit=limit,
+            status_filter=status_filter
+        )
+        
+        return results
+        
+    except Exception as e:
+        logger.error(f"Error getting job results: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get job results: {str(e)}"
+        )
+
+@app.get("/api/v1/batch/jobs/{job_id}/export")
+async def export_batch_job_results(
+    job_id: str,
+    format: str = "csv"
+):
+    """Export job results to specified format"""
+    try:
+        if format not in ["csv", "json", "excel"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid format. Supported formats: csv, json, excel"
+            )
+        
+        file_path = await batch_processor.export_job_results(job_id, format)
+        
+        return {
+            "status": "success",
+            "file_path": file_path,
+            "format": format,
+            "message": f"Results exported to {format.upper()}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error exporting job results: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to export job results: {str(e)}"
+        )
+
+@app.get("/api/v1/batch/queue/statistics")
+async def get_batch_queue_statistics():
+    """Get current batch processing queue statistics"""
+    try:
+        stats = await batch_processor.get_queue_statistics()
+        
+        return {
+            "status": "success",
+            "statistics": stats
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting queue statistics: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get queue statistics: {str(e)}"
+        )
+
 @app.post("/api/v1/batch/process")
 async def process_batch(file_path: str, callback_url: Optional[str] = None):
     """
-    Process a batch of identities
+    Legacy batch processing endpoint (deprecated - use /api/v1/batch/jobs instead)
     """
     try:
-        # This would typically queue the batch job
-        batch_id = f"BATCH_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        
-        # Queue batch processing job (implementation would use Celery/RQ)
-        # queue_batch_job(batch_id, file_path, callback_url)
+        # Create job using new service
+        job_id = await batch_processor.create_batch_job(
+            name=f"Legacy Batch - {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}",
+            job_type=JobType.IDENTITY_MATCHING,
+            created_by="legacy_api",
+            input_data=file_path,
+            config={"callback_url": callback_url} if callback_url else {}
+        )
         
         return {
-            "batch_id": batch_id,
+            "batch_id": job_id,
             "status": "queued",
             "file_path": file_path,
             "callback_url": callback_url,
-            "queued_at": datetime.utcnow()
+            "queued_at": datetime.utcnow(),
+            "message": "This endpoint is deprecated. Please use /api/v1/batch/jobs"
         }
     except Exception as e:
-        logger.error(f"Batch processing error: {str(e)}")
+        logger.error(f"Legacy batch processing error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Batch processing failed: {str(e)}"
@@ -284,6 +559,194 @@ async def get_statistics():
     except Exception as e:
         logger.error(f"Error fetching statistics: {str(e)}")
         return {"error": str(e)}
+
+# ========== DATA SOURCE MANAGEMENT ENDPOINTS ==========
+
+class DataSourceValidationRequest(BaseModel):
+    source_type: str = Field(..., description="Data source type")
+    config: Dict[str, Any] = Field(..., description="Data source configuration")
+    format: Optional[str] = Field(None, description="Data format")
+    connection_string: Optional[str] = Field(None, description="Connection string")
+    credentials: Optional[Dict[str, str]] = Field(None, description="Credentials")
+
+@app.post("/api/v1/data-sources/validate")
+async def validate_data_source(request: DataSourceValidationRequest):
+    """Validate a data source configuration"""
+    try:
+        # Convert string to enum
+        source_type = DataSourceType(request.source_type)
+        format_type = FileFormat(request.format) if request.format else None
+        
+        data_source_config = DataSourceConfig(
+            source_type=source_type,
+            config=request.config,
+            format=format_type,
+            connection_string=request.connection_string,
+            credentials=request.credentials
+        )
+        
+        validation_result = await data_source_service.validate_data_source(data_source_config)
+        
+        return {
+            "status": "success",
+            "validation": validation_result
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid data source configuration: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Data source validation error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Data source validation failed: {str(e)}"
+        )
+
+@app.post("/api/v1/data-sources/preview")
+async def preview_data_source(request: DataSourceValidationRequest):
+    """Preview data from a data source"""
+    try:
+        source_type = DataSourceType(request.source_type)
+        format_type = FileFormat(request.format) if request.format else None
+        
+        data_source_config = DataSourceConfig(
+            source_type=source_type,
+            config=request.config,
+            format=format_type,
+            connection_string=request.connection_string,
+            credentials=request.credentials
+        )
+        
+        data_source_info = await data_source_service.get_data_source_info(data_source_config)
+        
+        return {
+            "status": "success",
+            "data_source_info": data_source_info
+        }
+        
+    except Exception as e:
+        logger.error(f"Data source preview error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Data source preview failed: {str(e)}"
+        )
+
+@app.get("/api/v1/data-sources/types")
+async def get_data_source_types():
+    """Get list of supported data source types"""
+    try:
+        types = []
+        for source_type in DataSourceType:
+            types.append({
+                "type": source_type.value,
+                "name": source_type.name.replace('_', ' ').title(),
+                "supported_formats": data_source_service.get_supported_formats(source_type),
+                "required_fields": data_source_service.get_required_fields(source_type)
+            })
+        
+        return {
+            "status": "success",
+            "data_source_types": types
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting data source types: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get data source types: {str(e)}"
+        )
+
+@app.get("/api/v1/data-sources/formats")
+async def get_supported_formats():
+    """Get list of supported file formats"""
+    try:
+        formats = []
+        for format_type in FileFormat:
+            formats.append({
+                "format": format_type.value,
+                "name": format_type.name,
+                "description": f"{format_type.name} format"
+            })
+        
+        return {
+            "status": "success",
+            "formats": formats
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting formats: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get formats: {str(e)}"
+        )
+
+# ========== OUTPUT FORMAT MANAGEMENT ENDPOINTS ==========
+
+class OutputFormatValidationRequest(BaseModel):
+    format: str = Field(..., description="Output format")
+    destination: str = Field(..., description="Output destination")
+    config: Dict[str, Any] = Field(..., description="Output configuration")
+    filename_template: Optional[str] = Field(None, description="Filename template")
+    compression: Optional[str] = Field(None, description="Compression format")
+
+@app.post("/api/v1/output-formats/validate")
+async def validate_output_format(request: OutputFormatValidationRequest):
+    """Validate an output format configuration"""
+    try:
+        output_format = OutputFormat(request.format)
+        
+        output_config = OutputConfig(
+            format=output_format,
+            destination=request.destination,
+            config=request.config,
+            filename_template=request.filename_template,
+            compression=request.compression
+        )
+        
+        validation_result = await output_format_service.validate_output_config(output_config)
+        
+        return {
+            "status": "success",
+            "validation": validation_result
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid output format configuration: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Output format validation error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Output format validation failed: {str(e)}"
+        )
+
+@app.get("/api/v1/output-formats/types")
+async def get_output_format_types():
+    """Get list of supported output formats"""
+    try:
+        formats = []
+        for output_format in OutputFormat:
+            formats.append({
+                "format": output_format.value,
+                "name": output_format.name.replace('_', ' ').title(),
+                "requirements": output_format_service.get_format_requirements(output_format)
+            })
+        
+        return {
+            "status": "success",
+            "output_formats": formats
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting output formats: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get output formats: {str(e)}"
+        )
 
 # ========== ADMIN AND MANAGEMENT ENDPOINTS ==========
 
@@ -538,6 +1001,154 @@ async def get_queue_status():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Queue status retrieval failed: {str(e)}"
+        )
+
+# ========== DATA TRANSFORMATION ENDPOINTS ==========
+
+class DataMappingRequest(BaseModel):
+    mapping_data: Dict[str, Any] = Field(..., description="Data mapping configuration")
+
+class DataTransformationRequest(BaseModel):
+    data: List[Dict[str, Any]] = Field(..., description="Data to transform")
+    mapping_config: Dict[str, Any] = Field(..., description="Mapping configuration")
+
+class FieldSuggestionRequest(BaseModel):
+    sample_data: List[Dict[str, Any]] = Field(..., description="Sample data for analysis")
+
+@app.post("/api/v1/transformations/create-mapping")
+async def create_data_mapping(request: DataMappingRequest):
+    """Create a new data mapping configuration"""
+    try:
+        mapping_config = await data_transformation_service.create_mapping_config(request.mapping_data)
+        
+        return {
+            "status": "success",
+            "mapping_config": {
+                "mapping_name": mapping_config.mapping_name,
+                "description": mapping_config.description,
+                "field_count": len(mapping_config.field_mappings),
+                "transformation_count": len(mapping_config.global_transformations)
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Create mapping error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create mapping configuration: {str(e)}"
+        )
+
+@app.post("/api/v1/transformations/validate-mapping")
+async def validate_data_mapping(request: DataMappingRequest):
+    """Validate a data mapping configuration"""
+    try:
+        mapping_config = await data_transformation_service.create_mapping_config(request.mapping_data)
+        validation_result = await data_transformation_service.validate_mapping_config(mapping_config)
+        
+        return {
+            "status": "success",
+            "validation": validation_result
+        }
+        
+    except Exception as e:
+        logger.error(f"Validate mapping error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to validate mapping configuration: {str(e)}"
+        )
+
+@app.post("/api/v1/transformations/apply")
+async def apply_data_transformations(request: DataTransformationRequest):
+    """Apply data transformations to a dataset"""
+    try:
+        mapping_config = await data_transformation_service.create_mapping_config(request.mapping_config)
+        transformed_data = await data_transformation_service.apply_transformations(request.data, mapping_config)
+        
+        return {
+            "status": "success",
+            "transformed_data": transformed_data,
+            "record_count": len(transformed_data),
+            "transformation_summary": {
+                "original_fields": len(request.data[0]) if request.data else 0,
+                "transformed_fields": len(transformed_data[0]) if transformed_data else 0,
+                "applied_mappings": len(mapping_config.field_mappings),
+                "applied_transformations": len(mapping_config.global_transformations)
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Apply transformations error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to apply transformations: {str(e)}"
+        )
+
+@app.post("/api/v1/transformations/suggest-fields")
+async def suggest_field_mappings(request: FieldSuggestionRequest):
+    """Analyze sample data and suggest field mappings"""
+    try:
+        suggestions = await data_transformation_service.get_field_suggestions(request.sample_data)
+        
+        return {
+            "status": "success",
+            "suggestions": suggestions
+        }
+        
+    except Exception as e:
+        logger.error(f"Field suggestions error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate field suggestions: {str(e)}"
+        )
+
+@app.get("/api/v1/transformations/field-types")
+async def get_available_field_types():
+    """Get available field types for mapping"""
+    try:
+        field_types = [
+            {
+                "value": field_type.value,
+                "name": field_type.name.replace("_", " ").title(),
+                "description": f"Standard {field_type.value.replace('_', ' ')} field"
+            }
+            for field_type in FieldType
+        ]
+        
+        return {
+            "status": "success",
+            "field_types": field_types
+        }
+        
+    except Exception as e:
+        logger.error(f"Get field types error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get field types: {str(e)}"
+        )
+
+@app.get("/api/v1/transformations/transformation-types")
+async def get_available_transformation_types():
+    """Get available transformation types"""
+    try:
+        transformation_types = [
+            {
+                "value": trans_type.value,
+                "name": trans_type.name.replace("_", " ").title(),
+                "description": f"{trans_type.value.replace('_', ' ').title()} transformation"
+            }
+            for trans_type in TransformationType
+        ]
+        
+        return {
+            "status": "success",
+            "transformation_types": transformation_types
+        }
+        
+    except Exception as e:
+        logger.error(f"Get transformation types error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get transformation types: {str(e)}"
         )
 
 def deduplicate_matches(matches: List[Dict]) -> List[Dict]:

@@ -13,7 +13,9 @@
       "Bash(findstr:*)",
       "Bash(chmod:*)",
       "Bash(git push:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

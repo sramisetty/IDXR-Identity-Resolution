@@ -1,4 +1,4 @@
-# IDXR - Identity Cross-Resolution System v2.2.0
+# IDXR - Identity Cross-Resolution System v2.5.0
 
 ## 🎯 **Enterprise-Grade Identity Resolution Platform**
 
@@ -11,7 +11,7 @@
 IDXR represents the next generation of identity resolution technology, combining cutting-edge AI/ML algorithms with proven deterministic and probabilistic matching techniques. Built specifically to meet Colorado's requirements for cross-system identity resolution, the platform delivers:
 
 - **Sub-second response times** with 99.9% availability SLA
-- **AI/ML hybrid matching** with ensemble intelligence
+- **AI/ML hybrid matching** with ensemble intelligence and TensorFlow-powered deep learning
 - **Real-time processing** with horizontal auto-scaling
 - **Enterprise security** with FISMA/NIST compliance
 - **Advanced household detection** and relationship mapping
@@ -24,6 +24,9 @@ IDXR represents the next generation of identity resolution technology, combining
 - **Enterprise database integration** with connection pooling
 - **Configuration management** with hot-reload capabilities
 - **Comprehensive test coverage** with automated testing
+- **Advanced data source integration** supporting files, databases, APIs, and cloud storage
+- **Intelligent data transformation** with field mapping and standardization
+- **Batch processing capabilities** with queue management and progress tracking
 
 ---
 
@@ -51,14 +54,17 @@ IDXR represents the next generation of identity resolution technology, combining
 │ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐    │
 │ │  AI/ML Hybrid   │ │ Real-time      │ │ Security &      │    │
 │ │  Matcher        │ │ Processor      │ │ Compliance      │    │
+│ │ (TensorFlow)    │ │                │ │                 │    │
 │ └─────────────────┘ └─────────────────┘ └─────────────────┘    │
 │ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐    │
-│ │ Household       │ │ Data Quality    │ │ Admin          │    │
-│ │ Services        │ │ Engine          │ │ Interface      │    │
+│ │ Data Source     │ │ Data Quality    │ │ Transformation  │    │
+│ │ Service         │ │ Engine          │ │ Service         │    │
+│ │ (Multi-format)  │ │                 │ │ (Field Mapping) │    │
 │ └─────────────────┘ └─────────────────┘ └─────────────────┘    │
 │ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐    │
-│ │ Reporting       │ │ Cache Manager   │ │ Privacy        │    │
-│ │ System          │ │ (Redis)         │ │ Manager        │    │
+│ │ Batch          │ │ Cache Manager   │ │ Privacy        │    │
+│ │ Processing      │ │ (Redis)         │ │ Manager        │    │
+│ │ Service         │ │                 │ │                 │    │
 │ └─────────────────┘ └─────────────────┘ └─────────────────┘    │
 ├─────────────────────────────────────────────────────────────────┤
 │                Enterprise Data Layer                            │
@@ -95,10 +101,12 @@ Our proprietary **AIHybridMatcher** combines multiple algorithmic approaches for
 - **Accuracy**: 92-96% with proper calibration
 
 ##### **3. AI/ML Enhanced Matching** 🧠
-- **Neural Network Ensemble**: Deep learning with attention mechanisms
-- **Feature Engineering**: Automatic pattern detection
+- **TensorFlow Deep Learning**: Neural networks with attention mechanisms
+- **Transformer Models**: Advanced NLP for name and address processing
+- **Feature Engineering**: Automatic pattern detection with scikit-learn
 - **Transfer Learning**: Pre-trained on demographic datasets
 - **Continuous Learning**: Model improvement from user feedback
+- **PyTorch Integration**: Flexible model architecture support
 - **Performance**: ~10-15ms per comparison
 - **Accuracy**: 96-99% with comprehensive training data
 
@@ -769,6 +777,75 @@ python -m http.server 8080
 
 ---
 
+### **🎯 New API Endpoints (v2.5.0)**
+
+#### **POST /api/v1/data-sources/connect**
+```json
+{
+  "source_type": "database",
+  "connection_config": {
+    "host": "localhost",
+    "port": 5432,
+    "database": "identity_db",
+    "username": "user",
+    "password": "password",
+    "ssl_mode": "require"
+  },
+  "query": "SELECT * FROM identities WHERE created_at > NOW() - INTERVAL '1 day'"
+}
+```
+
+#### **POST /api/v1/transformations/apply**
+```json
+{
+  "data": [
+    {"fname": "John", "lname": "Doe", "phone": "3035551234"}
+  ],
+  "field_mappings": {
+    "fname": "first_name",
+    "lname": "last_name", 
+    "phone": "phone_number"
+  },
+  "validation_rules": {
+    "phone_number": "^\\(\\d{3}\\) \\d{3}-\\d{4}$"
+  },
+  "standardizations": {
+    "phone_number": "format_phone_us",
+    "first_name": "title_case"
+  }
+}
+```
+
+#### **POST /api/v1/batch/jobs**
+```json
+{
+  "job_name": "Monthly Identity Reconciliation",
+  "data_source": {
+    "type": "file",
+    "path": "/data/monthly_identities.csv"
+  },
+  "algorithms": ["deterministic", "ai_hybrid"],
+  "output_format": "excel",
+  "notification_email": "admin@colorado.gov",
+  "priority": "high"
+}
+```
+
+#### **GET /api/v1/batch/jobs/{job_id}/progress**
+```json
+{
+  "job_id": "job_20241215_001",
+  "status": "processing", 
+  "progress": 67.3,
+  "processed_records": 67300,
+  "total_records": 100000,
+  "estimated_completion": "2024-12-15T14:32:18Z",
+  "current_stage": "ai_hybrid_matching",
+  "errors": 12,
+  "matches_found": 8456
+}
+```
+
 ## 📚 **Comprehensive API Reference**
 
 ### **🎯 Core Identity Resolution**
@@ -1121,7 +1198,7 @@ monitoring:
 
 ### **🚀 Current Deployment**
 ```
-Version: 2.2.0 (Production Ready - Enhanced Analytics)
+Version: 2.5.0 (Production Ready - AI/ML Integration + Data Engine)
 Status: OPERATIONAL ✅
 Uptime: 99.96% (30-day average)
 Last Updated: 2025-01-15
@@ -1147,18 +1224,23 @@ Performance (Last 24h):
 ├── Security Events: 0
 └── Compliance Score: 98.7%
 
-Recent Enhancements (v2.2.0):
-├── ✅ Comprehensive Analytics Dashboard Implemented
-├── ✅ Algorithm Effectiveness Radar Charts Added
+Recent Enhancements (v2.5.0):
+├── ✅ AIHybridMatcher Integration with TensorFlow and Transformers
+├── ✅ Comprehensive Data Source Service (Files, DBs, APIs, Cloud)
+├── ✅ Advanced Data Transformation Engine with Field Mapping
+├── ✅ Batch Processing Service with Queue Management
+├── ✅ Output Format Service (CSV, JSON, XML, Excel, PDF)
+├── ✅ Real-time Progress Tracking and ETA Calculations
+├── ✅ Multi-threaded Processing with Configurable Workers
+├── ✅ Enhanced Error Handling and Retry Mechanisms
+├── ✅ Cloud Storage Integration (AWS S3, GCS, Azure)
+├── ✅ NoSQL Database Support (MongoDB, Redis)
+├── ✅ Advanced Analytics Dashboard with Professional Visualizations
+├── ✅ Algorithm Effectiveness Radar Charts and Performance Metrics
 ├── ✅ Data Quality Trends with 30-day Analysis
 ├── ✅ User Activity Patterns Multi-Metric Tracking
-├── ✅ Enhanced Performance Metrics Tables
-├── ✅ System Overview with Real-time Monitoring
-├── ✅ Professional Chart.js 4.0+ Visualizations
 ├── ✅ Interactive Tooltips and Drill-down Features
-├── ✅ Resource Usage Monitoring with Progress Bars
-├── ✅ Top Performing Algorithms Ranking
-└── ✅ Processing Statistics Visualization
+└── ✅ Resource Usage Monitoring with Progress Bars
 ```
 
 ---
@@ -1190,6 +1272,32 @@ Recent Enhancements (v2.2.0):
 ---
 
 ## 📈 **Roadmap & Future Enhancements**
+
+### **📊 Data Source & Transformation Engine**
+
+#### **🗂️ Comprehensive Data Source Support**
+- **File Formats**: CSV, JSON, XML, Excel, Parquet, Avro with automatic schema detection
+- **Database Integration**: PostgreSQL, MySQL, SQL Server, Oracle, SQLite with connection pooling
+- **Cloud Storage**: AWS S3, Google Cloud Storage, Azure Blob with secure authentication
+- **API Integration**: REST APIs, GraphQL, SOAP with authentication and rate limiting
+- **Real-time Streams**: Kafka, RabbitMQ, Redis Streams with offset management
+- **NoSQL Support**: MongoDB, Cassandra, DynamoDB with flexible schema handling
+
+#### **🔄 Advanced Data Transformation**
+- **Field Mapping**: Intelligent field name resolution with fuzzy matching
+- **Data Type Conversion**: Automatic type inference and conversion with validation
+- **Standardization**: Address normalization, phone formatting, name standardization
+- **Validation Rules**: Custom validation with regex patterns and business rules
+- **Data Enrichment**: External API integration for data enhancement
+- **Quality Assessment**: Completeness, accuracy, consistency scoring
+
+#### **⚡ Batch Processing Engine**
+- **Queue Management**: Priority-based job scheduling with Redis backing
+- **Progress Tracking**: Real-time progress updates with ETA calculations
+- **Error Handling**: Comprehensive error reporting with retry mechanisms
+- **Parallel Processing**: Multi-threaded execution with configurable workers
+- **Result Export**: Multiple output formats with custom templates
+- **Job Scheduling**: Cron-like scheduling with dependency management
 
 ### **🔮 Version 3.0 Planning (Q2 2025)**
 - **Advanced ML Models**: GPT-4 integration for natural language processing
@@ -1227,7 +1335,7 @@ Recent Enhancements (v2.2.0):
 
 **© 2024 Colorado Office of Information Technology. All rights reserved.**
 
-**IDXR Identity Cross-Resolution System - Enterprise Edition v2.2.0**
+**IDXR Identity Cross-Resolution System - Enterprise Edition v2.5.0**
 
 *Built with ❤️ for the State of Colorado*
 

@@ -16,8 +16,8 @@ from collections import defaultdict, deque
 
 from .security_service import SecurityService, PrivacyService, ComplianceService
 from .data_quality_service import DataQualityService
-from .reporting_service import ReportingService
-from .realtime_processor import RealtimeProcessor
+from .reporting_service import ReportGenerator
+from .realtime_processor import RealTimeProcessor
 
 class SystemStatus(Enum):
     HEALTHY = "healthy"
@@ -372,7 +372,7 @@ class AdminService:
         self.privacy_service = PrivacyService()
         self.compliance_service = ComplianceService()
         self.data_quality_service = DataQualityService()
-        self.reporting_service = ReportingService()
+        self.reporting_service = ReportGenerator()
         
         # Admin dashboard state
         self.dashboard_widgets = self._initialize_dashboard_widgets()

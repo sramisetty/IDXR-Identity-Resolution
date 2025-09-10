@@ -74,7 +74,7 @@ class Identity(Base):
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = Column(Boolean, default=True, index=True)
-    metadata = Column(JSON)  # Additional metadata
+    additional_metadata = Column(JSON)  # Additional metadata
     
     # Indexes for performance
     __table_args__ = (

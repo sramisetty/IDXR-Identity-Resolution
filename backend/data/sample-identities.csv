@@ -1,0 +1,11 @@
+first_name,last_name,dob,ssn,phone,email,address_street,address_city,address_state,address_zip
+John,Doe,1980-01-15,123456789,555-0123,john.doe@email.com,123 Main St,Denver,CO,80202
+Jane,Smith,1985-03-22,987654321,555-0456,jane.smith@email.com,456 Oak Ave,Boulder,CO,80301
+Michael,Johnson,1990-07-08,555123456,555-0789,m.johnson@email.com,789 Pine Dr,Fort Collins,CO,80521
+Sarah,Williams,1975-12-03,444555666,555-0321,sarah.w@email.com,321 Elm St,Colorado Springs,CO,80901
+Robert,Brown,1982-05-18,777888999,555-0654,robert.brown@email.com,654 Maple Ln,Lakewood,CO,80226
+Emily,Davis,1988-09-12,111222333,555-0987,emily.davis@email.com,987 Cedar Way,Thornton,CO,80229
+David,Miller,1977-11-25,999888777,555-0159,d.miller@email.com,159 Birch St,Westminster,CO,80031
+Lisa,Wilson,1983-04-07,333444555,555-0753,lisa.wilson@email.com,753 Spruce Ave,Arvada,CO,80002
+James,Moore,1991-08-14,666777888,555-0486,james.moore@email.com,486 Willow Dr,Pueblo,CO,81001
+Jennifer,Taylor,1979-02-28,222333444,555-0864,jen.taylor@email.com,864 Aspen Rd,Grand Junction,CO,81501

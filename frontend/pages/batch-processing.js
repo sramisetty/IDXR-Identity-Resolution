@@ -227,163 +227,156 @@ function setupFormHandlers() {
             scheduleOptions.style.display = 'none';
         }
     });
+
+    // Add file upload handler
+    document.querySelector('[name="dataFile"]').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            validateFileUpload(file);
+        }
+    });
+
+    // Add processing type change handler
+    document.querySelector('[name="processingType"]').addEventListener('change', function() {
+        updateJobOptions();
+    });
 }
 
-function loadActiveJobs() {
+async function loadActiveJobs() {
     const container = document.getElementById('activeJobs');
     
-    const activeJobs = [
-        {
-            id: 'JOB-2025-001',
-            name: 'Daily Identity Matching',
-            type: 'identity_matching',
-            progress: 65,
-            recordsProcessed: 13000,
-            totalRecords: 20000,
-            startTime: '10:30 AM',
-            estimatedCompletion: '2:15 PM'
-        },
-        {
-            id: 'JOB-2025-002',
-            name: 'Household Detection Batch',
-            type: 'household_detection',
-            progress: 25,
-            recordsProcessed: 2500,
-            totalRecords: 10000,
-            startTime: '11:45 AM',
-            estimatedCompletion: '4:30 PM'
-        },
-        {
-            id: 'JOB-2025-003',
-            name: 'Data Quality Assessment',
-            type: 'data_quality',
-            progress: 90,
-            recordsProcessed: 9000,
-            totalRecords: 10000,
-            startTime: '9:00 AM',
-            estimatedCompletion: '1:00 PM'
+    try {
+        // Show loading state
+        container.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Loading active jobs...</div>';
+        
+        const response = await fetch('/api/v1/batch/jobs?status=running');
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.jobs.length > 0) {
+            container.innerHTML = data.jobs.map(job => `
+                <div class="border rounded p-4 mb-4" data-job-id="${job.job_id}">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 class="font-medium">${job.name}</h4>
+                            <div class="text-sm text-gray-600">${job.job_id} • Started ${formatTime(job.started_at)}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-sm btn-outline" onclick="viewJobDetails('${job.job_id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" onclick="pauseJob('${job.job_id}')" title="Pause">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="cancelJob('${job.job_id}')" title="Cancel">
+                                <i class="fas fa-stop"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>Progress: ${job.progress.toFixed(1)}%</span>
+                            <span>${formatNumber(job.processed_records)} / ${formatNumber(job.total_records)} records</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: ${job.progress}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-xs text-gray-500">
+                        ${job.estimated_completion ? `Estimated completion: ${formatTime(job.estimated_completion)}` : 'Calculating completion time...'}
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<div class="text-center py-8 text-gray-500">No active jobs</div>';
         }
-    ];
-
-    container.innerHTML = activeJobs.map(job => `
-        <div class="border rounded p-4 mb-4">
-            <div class="flex justify-between items-start mb-3">
-                <div>
-                    <h4 class="font-medium">${job.name}</h4>
-                    <div class="text-sm text-gray-600">${job.id} • Started ${job.startTime}</div>
-                </div>
-                <div class="flex gap-2">
-                    <button class="btn btn-sm btn-outline" onclick="viewJobDetails('${job.id}')">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="cancelJob('${job.id}')">
-                        <i class="fas fa-stop"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <div class="flex justify-between text-sm mb-1">
-                    <span>Progress: ${job.progress}%</span>
-                    <span>${formatNumber(job.recordsProcessed)} / ${formatNumber(job.totalRecords)} records</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: ${job.progress}%"></div>
-                </div>
-            </div>
-            
-            <div class="text-xs text-gray-500">
-                Estimated completion: ${job.estimatedCompletion}
-            </div>
-        </div>
-    `).join('');
+    } catch (error) {
+        console.error('Error loading active jobs:', error);
+        container.innerHTML = '<div class="text-center py-4 text-red-500">Error loading active jobs</div>';
+    }
 }
 
-function loadRecentJobs() {
+async function loadRecentJobs() {
     const container = document.getElementById('recentJobs');
     
-    const recentJobs = [
-        {
-            id: 'JOB-2025-000',
-            name: 'Weekly Deduplication',
-            type: 'deduplication',
-            status: 'completed',
-            completedTime: '8:45 AM',
-            records: 50000,
-            duration: '2h 15m',
-            matches: 1247
-        },
-        {
-            id: 'JOB-2024-999',
-            name: 'Address Validation',
-            type: 'data_validation',
-            status: 'completed',
-            completedTime: 'Yesterday',
-            records: 25000,
-            duration: '1h 30m',
-            matches: 523
-        },
-        {
-            id: 'JOB-2024-998',
-            name: 'Monthly Report Data',
-            type: 'identity_matching',
-            status: 'failed',
-            completedTime: 'Yesterday',
-            records: 15000,
-            duration: '45m',
-            error: 'Database connection timeout'
+    try {
+        // Show loading state
+        container.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Loading recent jobs...</div>';
+        
+        const response = await fetch('/api/v1/batch/jobs?limit=10');
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.jobs.length > 0) {
+            // Filter out running jobs (they're shown in active jobs)
+            const recentJobs = data.jobs.filter(job => job.status !== 'running');
+            
+            if (recentJobs.length > 0) {
+                container.innerHTML = recentJobs.map(job => `
+                    <div class="border rounded p-4 mb-4" data-job-id="${job.job_id}">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-medium">${job.name}</h4>
+                                <div class="text-sm text-gray-600">${job.job_id}</div>
+                            </div>
+                            <span class="badge badge-${getJobStatusColor(job.status)}">${job.status}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="text-gray-500">Completed:</span>
+                                <span class="font-medium">${job.completed_at ? formatTime(job.completed_at) : 'N/A'}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Duration:</span>
+                                <span class="font-medium">${calculateDuration(job.started_at, job.completed_at)}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Records:</span>
+                                <span class="font-medium">${formatNumber(job.total_records)}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">${job.status === 'failed' ? 'Error:' : 'Success:'}</span>
+                                <span class="font-medium">${job.status === 'failed' ? (job.error_message || 'Unknown error') : formatNumber(job.successful_records)}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 flex gap-2">
+                            <button class="btn btn-sm btn-outline" onclick="viewJobDetails('${job.job_id}')">
+                                <i class="fas fa-eye"></i>
+                                View Details
+                            </button>
+                            ${job.status === 'completed' ? `
+                                <button class="btn btn-sm btn-outline" onclick="downloadResults('${job.job_id}')">
+                                    <i class="fas fa-download"></i>
+                                    Download
+                                </button>
+                            ` : ''}
+                            ${job.status === 'failed' ? `
+                                <button class="btn btn-sm btn-primary" onclick="retryJob('${job.job_id}')">
+                                    <i class="fas fa-redo"></i>
+                                    Retry
+                                </button>
+                            ` : ''}
+                            ${job.status === 'paused' ? `
+                                <button class="btn btn-sm btn-success" onclick="resumeJob('${job.job_id}')">
+                                    <i class="fas fa-play"></i>
+                                    Resume
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">No recent jobs</div>';
+            }
+        } else {
+            container.innerHTML = '<div class="text-center py-8 text-gray-500">No recent jobs</div>';
         }
-    ];
-
-    container.innerHTML = recentJobs.map(job => `
-        <div class="border rounded p-4 mb-4">
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <h4 class="font-medium">${job.name}</h4>
-                    <div class="text-sm text-gray-600">${job.id}</div>
-                </div>
-                <span class="badge badge-${getJobStatusColor(job.status)}">${job.status}</span>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                    <span class="text-gray-500">Completed:</span>
-                    <span class="font-medium">${job.completedTime}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">Duration:</span>
-                    <span class="font-medium">${job.duration}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">Records:</span>
-                    <span class="font-medium">${formatNumber(job.records)}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">${job.status === 'failed' ? 'Error:' : 'Matches:'}</span>
-                    <span class="font-medium">${job.status === 'failed' ? job.error : formatNumber(job.matches)}</span>
-                </div>
-            </div>
-            
-            <div class="mt-3 flex gap-2">
-                <button class="btn btn-sm btn-outline" onclick="viewJobDetails('${job.id}')">
-                    <i class="fas fa-eye"></i>
-                    View Details
-                </button>
-                ${job.status === 'completed' ? `
-                    <button class="btn btn-sm btn-outline" onclick="downloadResults('${job.id}')">
-                        <i class="fas fa-download"></i>
-                        Download
-                    </button>
-                ` : ''}
-                ${job.status === 'failed' ? `
-                    <button class="btn btn-sm btn-primary" onclick="retryJob('${job.id}')">
-                        <i class="fas fa-redo"></i>
-                        Retry
-                    </button>
-                ` : ''}
-            </div>
-        </div>
-    `).join('');
+    } catch (error) {
+        console.error('Error loading recent jobs:', error);
+        container.innerHTML = '<div class="text-center py-4 text-red-500">Error loading recent jobs</div>';
+    }
 }
 
 function setupBatchPerformanceChart() {
@@ -433,19 +426,50 @@ function updateJobOptions() {
     console.log('Processing type changed to:', processingType);
 }
 
-function submitBatchJob(event) {
+async function submitBatchJob(event) {
     event.preventDefault();
     
-    const formData = new FormData(event.target);
-    const jobData = Object.fromEntries(formData.entries());
+    const form = event.target;
+    const formData = new FormData(form);
     
-    showNotification('Creating batch job...', 'info');
-    
-    setTimeout(() => {
-        showNotification(`Batch job "${jobData.jobName}" created successfully`, 'success');
-        event.target.reset();
-        loadActiveJobs();
-    }, 2000);
+    try {
+        // Show loading state
+        showNotification('Creating batch job...', 'info');
+        
+        // Disable submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Job...';
+        
+        const response = await fetch('/api/v1/batch/jobs', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            showNotification(`Batch job "${formData.get('jobName')}" created successfully`, 'success');
+            form.reset();
+            
+            // Refresh job lists
+            await loadActiveJobs();
+            await loadRecentJobs();
+            await updateBatchStatistics();
+        } else {
+            throw new Error(data.message || 'Failed to create batch job');
+        }
+        
+    } catch (error) {
+        console.error('Error creating batch job:', error);
+        showNotification(`Error creating batch job: ${error.message}`, 'error');
+    } finally {
+        // Re-enable submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
 }
 
 function previewBatchJob() {
@@ -497,3 +521,305 @@ function clearCompleted() {
         loadRecentJobs();
     }
 }
+
+// Utility functions
+
+function formatTime(isoString) {
+    if (!isoString) return 'N/A';
+    const date = new Date(isoString);
+    return date.toLocaleString();
+}
+
+function calculateDuration(startTime, endTime) {
+    if (!startTime || !endTime) return 'N/A';
+    
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const diffMs = end - start;
+    
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    } else {
+        return `${minutes}m`;
+    }
+}
+
+function validateFileUpload(file) {
+    const maxSize = 100 * 1024 * 1024; // 100MB
+    const allowedTypes = ['text/csv', 'application/json', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+    
+    if (file.size > maxSize) {
+        showNotification('File size exceeds 100MB limit', 'error');
+        return false;
+    }
+    
+    if (!allowedTypes.includes(file.type)) {
+        showNotification('Invalid file type. Please upload CSV, JSON, or XLSX files only.', 'error');
+        return false;
+    }
+    
+    showNotification(`File "${file.name}" selected (${(file.size / 1024 / 1024).toFixed(2)} MB)`, 'success');
+    return true;
+}
+
+async function updateBatchStatistics() {
+    try {
+        const response = await fetch('/api/v1/batch/queue/statistics');
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            const stats = data.statistics;
+            
+            // Update stat cards
+            updateStatCard('Active Jobs', stats.active_jobs, 'Est. processing');
+            updateStatCard('Completed Today', stats.completed_today, '+3 from yesterday');
+            updateStatCard('Queued Jobs', stats.queued_jobs, stats.queued_jobs > 5 ? 'Queue building up' : 'Normal queue');
+            updateStatCard('Records/Hour', formatNumber(stats.processing_rate_per_hour), '15% faster');
+        }
+    } catch (error) {
+        console.error('Error updating batch statistics:', error);
+    }
+}
+
+function updateStatCard(title, value, change) {
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        const titleElement = card.querySelector('.stat-title');
+        if (titleElement && titleElement.textContent === title) {
+            const valueElement = card.querySelector('.stat-value');
+            const changeElement = card.querySelector('.stat-change span');
+            
+            if (valueElement) valueElement.textContent = value;
+            if (changeElement) changeElement.textContent = change;
+        }
+    });
+}
+
+// Enhanced job management functions
+
+async function pauseJob(jobId) {
+    try {
+        showNotification('Pausing job...', 'info');
+        
+        const response = await fetch(`/api/v1/batch/jobs/${jobId}/pause`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            showNotification(`Job ${jobId} paused successfully`, 'success');
+            await loadActiveJobs();
+            await loadRecentJobs();
+        } else {
+            throw new Error(data.message || 'Failed to pause job');
+        }
+    } catch (error) {
+        console.error('Error pausing job:', error);
+        showNotification(`Error pausing job: ${error.message}`, 'error');
+    }
+}
+
+async function resumeJob(jobId) {
+    try {
+        showNotification('Resuming job...', 'info');
+        
+        const response = await fetch(`/api/v1/batch/jobs/${jobId}/resume`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            showNotification(`Job ${jobId} resumed successfully`, 'success');
+            await loadActiveJobs();
+            await loadRecentJobs();
+        } else {
+            throw new Error(data.message || 'Failed to resume job');
+        }
+    } catch (error) {
+        console.error('Error resuming job:', error);
+        showNotification(`Error resuming job: ${error.message}`, 'error');
+    }
+}
+
+async function cancelJob(jobId) {
+    if (!confirm(`Are you sure you want to cancel job ${jobId}?`)) {
+        return;
+    }
+    
+    try {
+        showNotification('Cancelling job...', 'info');
+        
+        const response = await fetch(`/api/v1/batch/jobs/${jobId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            showNotification(`Job ${jobId} cancelled successfully`, 'warning');
+            await loadActiveJobs();
+            await loadRecentJobs();
+        } else {
+            throw new Error(data.message || 'Failed to cancel job');
+        }
+    } catch (error) {
+        console.error('Error cancelling job:', error);
+        showNotification(`Error cancelling job: ${error.message}`, 'error');
+    }
+}
+
+async function downloadResults(jobId) {
+    try {
+        showNotification(`Preparing download for job ${jobId}...`, 'info');
+        
+        const response = await fetch(`/api/v1/batch/jobs/${jobId}/export?format=csv`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            showNotification('Download link prepared', 'success');
+            // In a real implementation, you would handle file download here
+            console.log('Download file path:', data.file_path);
+        } else {
+            throw new Error(data.message || 'Failed to export results');
+        }
+    } catch (error) {
+        console.error('Error downloading results:', error);
+        showNotification(`Error preparing download: ${error.message}`, 'error');
+    }
+}
+
+async function viewJobDetails(jobId) {
+    try {
+        const response = await fetch(`/api/v1/batch/jobs/${jobId}`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            showJobDetailsModal(data.job);
+        } else {
+            throw new Error(data.message || 'Failed to get job details');
+        }
+    } catch (error) {
+        console.error('Error getting job details:', error);
+        showNotification(`Error loading job details: ${error.message}`, 'error');
+    }
+}
+
+function showJobDetailsModal(job) {
+    // Create modal HTML
+    const modalHTML = `
+        <div class="modal-overlay" onclick="closeModal()">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3>Job Details: ${job.name}</h3>
+                    <button onclick="closeModal()" class="btn btn-sm">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><strong>Job ID:</strong> ${job.job_id}</div>
+                        <div><strong>Status:</strong> <span class="badge badge-${getJobStatusColor(job.status)}">${job.status}</span></div>
+                        <div><strong>Type:</strong> ${job.job_type}</div>
+                        <div><strong>Priority:</strong> ${job.priority}</div>
+                        <div><strong>Created:</strong> ${formatTime(job.created_at)}</div>
+                        <div><strong>Started:</strong> ${formatTime(job.started_at)}</div>
+                        <div><strong>Progress:</strong> ${job.progress.toFixed(1)}%</div>
+                        <div><strong>Total Records:</strong> ${formatNumber(job.total_records)}</div>
+                        <div><strong>Processed:</strong> ${formatNumber(job.processed_records)}</div>
+                        <div><strong>Successful:</strong> ${formatNumber(job.successful_records)}</div>
+                        <div><strong>Failed:</strong> ${formatNumber(job.failed_records)}</div>
+                        <div><strong>Created By:</strong> ${job.created_by}</div>
+                    </div>
+                    ${job.error_message ? `
+                        <div class="mt-4">
+                            <strong>Error Message:</strong>
+                            <div class="bg-red-50 border border-red-200 rounded p-3 mt-2">
+                                ${job.error_message}
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${job.config ? `
+                        <div class="mt-4">
+                            <strong>Configuration:</strong>
+                            <pre class="bg-gray-50 border rounded p-3 mt-2 text-sm">${JSON.stringify(job.config, null, 2)}</pre>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="modal-footer">
+                    <button onclick="closeModal()" class="btn btn-outline">Close</button>
+                    ${job.status === 'completed' ? `
+                        <button onclick="downloadResults('${job.job_id}')" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Download Results
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+async function retryJob(jobId) {
+    try {
+        // Get original job details
+        const response = await fetch(`/api/v1/batch/jobs/${jobId}`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            const originalJob = data.job;
+            
+            // Create a new job with the same configuration
+            const retryJobData = {
+                name: `${originalJob.name} (Retry)`,
+                job_type: originalJob.job_type,
+                input_data: originalJob.input_file_path,
+                config: originalJob.config,
+                priority: originalJob.priority,
+                created_by: originalJob.created_by
+            };
+            
+            const createResponse = await fetch('/api/v1/batch/jobs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(retryJobData)
+            });
+            
+            const createData = await createResponse.json();
+            
+            if (createData.status === 'success') {
+                showNotification(`Retry job created: ${createData.job_id}`, 'success');
+                await loadActiveJobs();
+                await loadRecentJobs();
+            } else {
+                throw new Error(createData.message || 'Failed to create retry job');
+            }
+        } else {
+            throw new Error(data.message || 'Failed to get original job details');
+        }
+    } catch (error) {
+        console.error('Error retrying job:', error);
+        showNotification(`Error retrying job: ${error.message}`, 'error');
+    }
+}
+
+// Auto-refresh jobs every 30 seconds
+setInterval(async () => {
+    if (document.getElementById('activeJobs')) {
+        await loadActiveJobs();
+        await updateBatchStatistics();
+    }
+}, 30000);
