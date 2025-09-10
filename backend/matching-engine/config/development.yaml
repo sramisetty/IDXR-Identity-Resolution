@@ -1,0 +1,73 @@
+app_name: "IDXR Development"
+app_version: "2.1.0"
+environment: "development"
+debug: true
+demo_mode: true
+host: "0.0.0.0"
+port: 3000
+workers: 1
+reload: true
+
+database:
+  host: "localhost"
+  port: 5432
+  database: "idxr_dev"
+  user: "dev_user"
+  password: "dev_password"
+  pool_size: 10
+  max_overflow: 20
+  echo: true
+
+redis:
+  host: "localhost"
+  port: 6379
+  database: 0
+  password: null
+  ssl: false
+
+security:
+  jwt_expire_hours: 24
+  password_min_length: 8
+  max_login_attempts: 10
+  cors_origins: ["*"]
+  rate_limit_enabled: false
+
+matching:
+  enabled_algorithms: ["deterministic", "probabilistic", "fuzzy"]
+  default_confidence_threshold: 0.8
+  auto_match_threshold: 0.9
+  manual_review_threshold: 0.6
+  batch_size: 500
+  enable_ml_enhancement: false
+  cache_ttl_seconds: 60
+  deterministic_weight: 0.5
+  probabilistic_weight: 0.3
+  fuzzy_weight: 0.2
+  ai_hybrid_weight: 0.0
+
+monitoring:
+  prometheus_enabled: false
+  health_check_enabled: true
+  distributed_tracing_enabled: false
+  log_level: "DEBUG"
+  log_format: "text"
+  metrics_collection_interval: 60
+
+features:
+  advanced_matching: true
+  household_detection: true
+  real_time_processing: false
+  data_quality_checks: true
+  comprehensive_reporting: true
+  admin_interface: true
+  api_rate_limiting: false
+  security_monitoring: false
+  compliance_tracking: false
+
+external_services:
+  address_validation:
+    enabled: false
+  phone_validation:
+    enabled: false
+  email_validation:
+    enabled: false
