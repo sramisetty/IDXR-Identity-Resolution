@@ -9,7 +9,7 @@ function loadOverviewPage() {
         </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
             <!-- System Status Card -->
             <div class="card">
                 <div class="card-header">
@@ -101,8 +101,31 @@ function loadOverviewPage() {
                 </div>
             </div>
 
+            <!-- Documentation Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Documentation</h3>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-cols-1 gap-3">
+                        <a href="docs/readme.html" target="_blank" class="btn btn-secondary w-full">
+                            <i class="fas fa-book-open"></i>
+                            README - System Overview
+                        </a>
+                        <a href="docs/idxr-solution-documentation.html" target="_blank" class="btn btn-secondary w-full">
+                            <i class="fas fa-file-alt"></i>
+                            IDXR Solution Documentation
+                        </a>
+                        <a href="docs/batch-processing-guide.html" target="_blank" class="btn btn-secondary w-full">
+                            <i class="fas fa-layer-group"></i>
+                            Batch Processing Guide
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Performance Overview Chart -->
-            <div class="card lg:col-span-2">
+            <div class="card lg:col-span-2 xl:col-span-2">
                 <div class="card-header">
                     <h3 class="card-title">Performance Overview</h3>
                     <div class="flex items-center gap-2">
