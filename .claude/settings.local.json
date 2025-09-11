@@ -45,7 +45,20 @@
       "Bash(wmic:*)",
       "Bash(net stop:*)",
       "Bash(net start:*)",
-      "Bash(del nul)"
+      "Bash(del nul)",
+      "Bash(Get-Process -Id 33436)",
+      "Bash(npm run status:*)",
+      "Bash(npm run start-force:*)",
+      "Bash(npm run start:*)",
+      "Bash(claude-cli.bat nginx test)",
+      "Bash(\"C:\\Users\\srami\\Work\\Playground\\nginx\\nginx.exe\" -t)",
+      "Bash(start http://localhost:3001)",
+      "Bash(copy:*)",
+      "Bash(NODE_ENV=production PORT=3010 node backend/server.js)",
+      "Bash(start https://idxr.ramisetty.net/admin-dashboard.html)",
+      "Bash(redis-cli:*)",
+      "Bash(C:redisredis-server.exe C:UserssramiWorkPlaygroundIDXRredis.conf)",
+      "Bash(\"/c/redis/redis-server.exe\" \"/c/Users/srami/Work/Playground/IDXR/redis.conf\")"
     ],
     "deny": [],
     "ask": []

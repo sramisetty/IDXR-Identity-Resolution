@@ -72,8 +72,10 @@ app.use(compression());
 // Logging
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
-// Static file serving for documentation
+// Static file serving for documentation and frontend
 app.use('/docs', express.static('docs'));
+app.use('/frontend', express.static('frontend'));
+app.use('/', express.static('frontend'));
 
 // Public routes
 app.use('/api/health', healthRoutes);
@@ -113,7 +115,7 @@ app.get('/api/v1/websocket/stats', authenticate, (req, res) => {
 app.get('/api/v1/audit', authenticate, async (req, res) => {
   try {
     if (jobManager) {
-      const { limit = 100, offset = 0, job_id, action_type } = req.query;
+      const { limit = 1000, offset = 0, job_id, action_type } = req.query;
       const result = await jobManager.getAuditLogs({ limit, offset, job_id, action_type });
       res.json(result);
     } else {

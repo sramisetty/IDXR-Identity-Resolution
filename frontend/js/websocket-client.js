@@ -381,7 +381,7 @@ class IDXRWebSocketClient {
     async pollForUpdates() {
         try {
             // Poll for active jobs
-            const response = await fetch('/api/v1/batch/jobs?status=running&limit=50');
+            const response = await fetch('/api/v1/batch/jobs?status=running');
             
             // Handle rate limiting
             if (response.status === 429) {

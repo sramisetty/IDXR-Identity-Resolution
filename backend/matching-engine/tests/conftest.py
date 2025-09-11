@@ -71,7 +71,7 @@ def test_config() -> AppConfig:
         matching=MatchingConfig(
             enabled_algorithms=["deterministic", "probabilistic", "fuzzy"],
             default_confidence_threshold=0.85,
-            batch_size=100,
+            batch_size=1000000,
             enable_ml_enhancement=False  # Disable for testing
         ),
         monitoring=MonitoringConfig(

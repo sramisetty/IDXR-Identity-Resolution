@@ -1792,23 +1792,49 @@ async function cancelJob(jobId) {
     }
 }
 
-async function downloadResults(jobId) {
+async function downloadResults(jobId, format = null) {
     try {
-        showNotification(`Preparing download for job ${jobId}...`, 'info');
-        
-        const response = await fetch(`/api/v1/batch/jobs/${jobId}/export?format=csv`);
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            showNotification('Download link prepared', 'success');
-            // In a real implementation, you would handle file download here
-            console.log('Download file path:', data.file_path);
-        } else {
-            throw new Error(data.message || 'Failed to export results');
+        // Show format selection modal if no format specified
+        if (!format) {
+            const selectedFormat = await showDownloadFormatModal(jobId);
+            if (!selectedFormat) {
+                return; // User cancelled
+            }
+            format = selectedFormat;
         }
+        
+        showNotification(`Preparing ${format.toUpperCase()} download for job ${jobId}...`, 'info');
+        
+        // Use the dedicated download endpoint
+        const downloadUrl = `/api/v1/batch/jobs/${jobId}/download?format=${format}`;
+        
+        // Create a temporary link and trigger download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        
+        // Try to get filename from response headers
+        try {
+            const response = await fetch(downloadUrl, { method: 'HEAD' });
+            const filename = response.headers.get('X-Filename') || `IDXR_Job_${jobId}.${format}`;
+            const recordCount = response.headers.get('X-Record-Count') || 'unknown';
+            
+            link.download = filename;
+            link.click();
+            
+            showNotification(`Download started: ${filename} (${recordCount} records)`, 'success');
+        } catch (error) {
+            // Fallback: just trigger download without filename info
+            link.click();
+            showNotification(`Download started for job ${jobId}`, 'success');
+        }
+        
+        document.body.removeChild(link);
+        
     } catch (error) {
         console.error('Error downloading results:', error);
-        showNotification(`Error preparing download: ${error.message}`, 'error');
+        showNotification(`Error downloading results: ${error.message}`, 'error');
     }
 }
 
@@ -1890,6 +1916,85 @@ function closeModal() {
     }
 }
 
+function showDownloadFormatModal(jobId) {
+    return new Promise((resolve) => {
+        const modalHtml = `
+            <div class="modal-overlay" id="downloadFormatModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Select Download Format</h3>
+                        <button class="modal-close" onclick="closeDownloadFormatModal(false)">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Choose the format for downloading job results:</p>
+                        <div class="format-options" style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                            <div class="format-option" onclick="selectDownloadFormat('csv')" style="display: flex; align-items: center; gap: 15px; padding: 15px; border: 2px solid #e1e5e9; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                <i class="fas fa-file-csv" style="font-size: 24px; color: #28a745;"></i>
+                                <div class="format-details">
+                                    <strong style="display: block; font-size: 16px; margin-bottom: 4px;">CSV</strong>
+                                    <small style="color: #6c757d;">Comma-separated values, Excel compatible</small>
+                                </div>
+                            </div>
+                            <div class="format-option" onclick="selectDownloadFormat('json')" style="display: flex; align-items: center; gap: 15px; padding: 15px; border: 2px solid #e1e5e9; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                <i class="fas fa-file-code" style="font-size: 24px; color: #007bff;"></i>
+                                <div class="format-details">
+                                    <strong style="display: block; font-size: 16px; margin-bottom: 4px;">JSON</strong>
+                                    <small style="color: #6c757d;">JavaScript Object Notation, API friendly</small>
+                                </div>
+                            </div>
+                            <div class="format-option" onclick="selectDownloadFormat('xlsx')" style="display: flex; align-items: center; gap: 15px; padding: 15px; border: 2px solid #e1e5e9; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                <i class="fas fa-file-excel" style="font-size: 24px; color: #17a2b8;"></i>
+                                <div class="format-details">
+                                    <strong style="display: block; font-size: 16px; margin-bottom: 4px;">Excel</strong>
+                                    <small style="color: #6c757d;">Microsoft Excel format (XLSX)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Add hover effects
+        const formatOptions = document.querySelectorAll('#downloadFormatModal .format-option');
+        formatOptions.forEach(option => {
+            option.addEventListener('mouseenter', () => {
+                option.style.borderColor = '#007bff';
+                option.style.backgroundColor = '#f8f9fa';
+            });
+            option.addEventListener('mouseleave', () => {
+                option.style.borderColor = '#e1e5e9';
+                option.style.backgroundColor = 'white';
+            });
+        });
+        
+        // Store resolve function globally so it can be accessed by button clicks
+        window.downloadFormatResolve = resolve;
+    });
+}
+
+function selectDownloadFormat(format) {
+    if (window.downloadFormatResolve) {
+        window.downloadFormatResolve(format);
+        window.downloadFormatResolve = null;
+    }
+    closeDownloadFormatModal();
+}
+
+function closeDownloadFormatModal(cancelled = true) {
+    const modal = document.getElementById('downloadFormatModal');
+    if (modal) {
+        modal.remove();
+    }
+    
+    if (cancelled && window.downloadFormatResolve) {
+        window.downloadFormatResolve(null); // User cancelled
+        window.downloadFormatResolve = null;
+    }
+}
+
 async function retryJob(jobId) {
     try {
         // Get original job details
@@ -1956,7 +2061,7 @@ function parseCSVToArray(csvText) {
         
         // Parse data rows
         const data = [];
-        for (let i = 1; i < lines.length && i < 101; i++) { // Limit to 100 rows for demo
+        for (let i = 1; i < lines.length; i++) { // Process all rows
             const row = lines[i].split(',').map(cell => cell.trim().replace(/"/g, ''));
             const rowObject = {};
             

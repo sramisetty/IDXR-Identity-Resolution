@@ -1608,11 +1608,14 @@
         </main>
     </div>
 
+    <!-- Configuration -->
+    <script src="config.js"></script>
+    
     <!-- JavaScript -->
     <script>
-        // Global variables - use relative URLs to work in both development and production
-        const API_BASE_URL = '/api/v1';
-        const BACKEND_API_URL = '/api';
+        // Global variables - use configuration for environment-aware URLs
+        const API_BASE_URL = window.IDXR_CONFIG.getApiBaseUrl();
+        const BACKEND_API_URL = window.IDXR_CONFIG.getApiBaseUrl().replace('/v1', '');
         let currentPage = 'overview';
         let refreshInterval = null;
         let chartInstances = {};

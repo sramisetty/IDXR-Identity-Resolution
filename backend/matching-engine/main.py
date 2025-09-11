@@ -330,7 +330,7 @@ async def get_batch_job_status(job_id: str):
 @app.get("/api/v1/batch/jobs")
 async def list_batch_jobs(
     status_filter: Optional[str] = None,
-    limit: int = 50,
+    limit: int = 10000,
     offset: int = 0
 ):
     """List all batch jobs with optional filtering"""
@@ -443,7 +443,7 @@ async def resume_batch_job(job_id: str):
 async def get_batch_job_results(
     job_id: str,
     page: int = 1,
-    limit: int = 100,
+    limit: int = 1000000,
     status_filter: Optional[str] = None
 ):
     """Get results for a completed batch job"""

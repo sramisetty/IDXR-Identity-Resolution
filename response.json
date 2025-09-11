@@ -1,0 +1,24 @@
+[
+  {
+    "record_id": "5af4c9e2-c795-402f-a8d2-60259a0d1379",
+    "status": "success",
+    "confidence_score": 0.6621493769546052,
+    "matched_records": 1,
+    "processing_time": 715,
+    "metadata": {
+      "algorithm_used": "hybrid",
+      "quality_flags": []
+    }
+  },
+  {
+    "record_id": "8063675a-809d-4a94-b128-9b11b989dce8",
+    "status": "success",
+    "confidence_score": 0.13049189527167004,
+    "matched_records": 0,
+    "processing_time": 719,
+    "metadata": {
+      "algorithm_used": "hybrid",
+      "quality_flags": []
+    }
+  }
+]

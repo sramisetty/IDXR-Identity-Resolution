@@ -1,0 +1,26 @@
+HTTP/1.1 200 OK
+Content-Security-Policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+Content-Type: application/json; charset=utf-8
+Content-Disposition: attachment; filename="IDXR_Job_fd896c28-8dae-4d90-a39c-d2cd32bbcfdd_2025-09-11T21-15-44-865Z.json"
+Content-Length: 549
+X-Filename: IDXR_Job_fd896c28-8dae-4d90-a39c-d2cd32bbcfdd_2025-09-11T21-15-44-865Z.json
+X-Record-Count: 2
+ETag: W/"225-BCyFNqLSbIVVmucz4+/7mz2SkSo"
+Vary: Accept-Encoding
+Date: Thu, 11 Sep 2025 21:15:44 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+

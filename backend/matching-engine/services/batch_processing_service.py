@@ -208,7 +208,7 @@ class BatchProcessingService:
     async def get_all_jobs(
         self,
         status_filter: Optional[JobStatus] = None,
-        limit: int = 50,
+        limit: int = 10000,
         offset: int = 0
     ) -> List[Dict[str, Any]]:
         """Get list of all batch jobs with optional filtering"""
@@ -274,7 +274,7 @@ class BatchProcessingService:
         self,
         job_id: str,
         page: int = 1,
-        limit: int = 100,
+        limit: int = 1000000,
         status_filter: Optional[str] = None
     ) -> Dict[str, Any]:
         """Get results for a completed batch job"""

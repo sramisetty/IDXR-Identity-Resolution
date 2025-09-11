@@ -78,6 +78,7 @@ router.post('/jobs', upload.single('dataFile'), async (req, res) => {
   try {
     const {
       jobName,
+      name, // Frontend sends 'name', backend expects 'jobName'
       processingType,
       priority = 'normal',
       batchSize = 1000,
@@ -86,6 +87,9 @@ router.post('/jobs', upload.single('dataFile'), async (req, res) => {
       useAI = true,
       createdBy = 'web_user'
     } = req.body;
+    
+    // Use either jobName or name (frontend compatibility)
+    const actualJobName = jobName || name;
     
     let inputData;
     
@@ -114,7 +118,7 @@ router.post('/jobs', upload.single('dataFile'), async (req, res) => {
     }
     
     const jobRequest = {
-      name: jobName,
+      name: actualJobName,
       job_type: processingType,
       input_data: inputData,
       config: {
@@ -140,7 +144,7 @@ router.post('/jobs', upload.single('dataFile'), async (req, res) => {
         status: 'success',
         job_id: result.job_id,
         message: 'Batch job created successfully',
-        job_name: jobName,
+        job_name: actualJobName,
         processing_type: processingType,
         priority
       });
@@ -153,7 +157,7 @@ router.post('/jobs', upload.single('dataFile'), async (req, res) => {
           status: 'success',
           job_id: response.job_id,
           message: 'Batch job created successfully',
-          job_name: jobName,
+          job_name: actualJobName,
           processing_type: processingType,
           priority
         });
@@ -166,7 +170,7 @@ router.post('/jobs', upload.single('dataFile'), async (req, res) => {
           status: 'success',
           job_id: demoJobId,
           message: 'Demo batch job created successfully',
-          job_name: jobName,
+          job_name: actualJobName,
           processing_type: processingType,
           priority,
           demo: true
@@ -230,7 +234,7 @@ router.post('/submit', async (req, res) => {
 // Get all batch jobs
 router.get('/jobs', async (req, res) => {
   try {
-    const { status, limit = 50, offset = 0, job_type, created_by } = req.query;
+    const { status, limit = 10000, offset = 0, job_type, created_by } = req.query;
     
     const filters = {
       limit,
@@ -365,7 +369,7 @@ router.post('/jobs/:jobId/resume', async (req, res) => {
 router.get('/jobs/:jobId/results', async (req, res) => {
   try {
     const { jobId } = req.params;
-    const { page = 1, limit = 100, status_filter } = req.query;
+    const { page = 1, limit = 10000, status_filter } = req.query;
     
     // Use JobManager if available
     if (jobManager) {
@@ -395,22 +399,103 @@ router.get('/jobs/:jobId/results', async (req, res) => {
 router.get('/jobs/:jobId/export', async (req, res) => {
   try {
     const { jobId } = req.params;
-    const { format = 'csv' } = req.query;
+    const { format = 'csv', download = 'false' } = req.query;
     
     // Use JobManager if available
     if (jobManager) {
       const result = await jobManager.exportJobResults(jobId, format);
-      res.json(result);
+      
+      if (download === 'true') {
+        // Direct file download
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `job_${jobId}_results_${timestamp}.${result.file_extension}`;
+        
+        res.setHeader('Content-Type', result.content_type);
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Length', Buffer.byteLength(result.data, 'utf8'));
+        
+        res.send(result.data);
+      } else {
+        // JSON API response
+        res.json(result);
+      }
     } else {
       // Fallback to Python API
       const response = await callPythonAPI(`/api/v1/batch/jobs/${jobId}/export?format=${format}`);
-      res.json(response);
+      
+      if (download === 'true' && response.data) {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `job_${jobId}_results_${timestamp}.${format}`;
+        
+        res.setHeader('Content-Type', format === 'json' ? 'application/json' : 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(response.data);
+      } else {
+        res.json(response);
+      }
     }
   } catch (error) {
     logger.error('Error exporting job results:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to export job results',
+      error: error.message
+    });
+  }
+});
+
+// Download batch job results as file
+router.get('/jobs/:jobId/download', async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { format = 'csv' } = req.query;
+    
+    logger.info(`Download request for job ${jobId} in ${format} format`);
+    
+    // Use JobManager if available
+    if (jobManager) {
+      const result = await jobManager.exportJobResults(jobId, format);
+      
+      if (result.status !== 'success') {
+        return res.status(400).json(result);
+      }
+      
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `IDXR_Job_${jobId}_${timestamp}.${result.file_extension}`;
+      
+      // Set appropriate headers for file download
+      res.setHeader('Content-Type', result.content_type);
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', Buffer.byteLength(result.data, 'utf8'));
+      res.setHeader('X-Filename', filename); // Custom header for frontend
+      res.setHeader('X-Record-Count', result.record_count); // Custom header for record count
+      
+      logger.info(`Sending download file: ${filename} (${result.record_count} records)`);
+      res.send(result.data);
+      
+    } else {
+      // Fallback to Python API
+      const response = await callPythonAPI(`/api/v1/batch/jobs/${jobId}/export?format=${format}`);
+      
+      if (response.status !== 'success') {
+        return res.status(400).json(response);
+      }
+      
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `IDXR_Job_${jobId}_${timestamp}.${format}`;
+      
+      res.setHeader('Content-Type', format === 'json' ? 'application/json' : 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('X-Filename', filename);
+      
+      res.send(response.data);
+    }
+  } catch (error) {
+    logger.error('Error downloading job results:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to download job results',
       error: error.message
     });
   }
@@ -517,7 +602,7 @@ router.get('/:batchId/status', async (req, res) => {
 router.get('/:batchId/results', async (req, res) => {
   try {
     const { batchId } = req.params;
-    const { page = 1, limit = 100 } = req.query;
+    const { page = 1, limit = 10000 } = req.query;
     
     const response = await callPythonAPI(`/api/v1/batch/jobs/${batchId}/results?page=${page}&limit=${limit}`);
     

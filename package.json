@@ -4,13 +4,17 @@
   "description": "Identity Cross-Resolution System Demo Implementation",
   "main": "backend/server.js",
   "scripts": {
-    "start": "node backend/server.js",
+    "start": "node scripts/start-server.js",
+    "start-direct": "node backend/server.js",
+    "start-force": "node scripts/start-server.js --force-start",
     "dev": "nodemon backend/server.js",
     "frontend": "cd frontend && npm start",
     "test": "jest",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "seed": "node scripts/seedDatabase.js"
+    "seed": "node scripts/seedDatabase.js",
+    "status": "node -e \"const fs=require('fs'); const path=require('path'); const pidFile=path.join(__dirname,'server.pid'); if(fs.existsSync(pidFile)){const pid=fs.readFileSync(pidFile,'utf8').trim(); console.log('Server PID:',pid); try{process.kill(pid,0); console.log('Status: RUNNING')}catch{console.log('Status: STOPPED (stale PID)')}}else{console.log('Status: STOPPED')}\"",
+    "health-check": "node scripts/check-consistency.js"
   },
   "dependencies": {
     "axios": "^1.11.0",
