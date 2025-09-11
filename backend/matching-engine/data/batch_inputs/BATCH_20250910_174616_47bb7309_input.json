@@ -1,0 +1,9 @@
+[
+  {
+    "record_id": "VAL_001",
+    "first_name": "John123",
+    "last_name": "Doe",
+    "email": "invalid-email",
+    "phone": "not-a-phone"
+  }
+]

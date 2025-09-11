@@ -1,0 +1,16 @@
+[
+  {
+    "record_id": "ID_001",
+    "first_name": "John",
+    "last_name": "Doe",
+    "dob": "1985-03-15",
+    "ssn": "1234",
+    "phone": "(303) 555-0123",
+    "address": {
+      "street": "123 Main St",
+      "city": "Denver",
+      "state": "CO",
+      "zip": "80202"
+    }
+  }
+]

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="messages"></div>
+    <button onclick="testSubscription()">Test Job Subscription</button>
+    <button onclick="testPing()">Test Ping</button>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        const statusDiv = document.getElementById('status');
+        const messagesDiv = document.getElementById('messages');
+        
+        function log(message) {
+            const div = document.createElement('div');
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            messagesDiv.appendChild(div);
+            console.log(message);
+        }
+
+        // Test WebSocket connection
+        const socket = io(window.location.protocol + '//' + window.location.host, {
+            auth: {
+                token: 'demo'
+            },
+            transports: ['websocket', 'polling'],
+            timeout: 10000
+        });
+
+        socket.on('connect', () => {
+            statusDiv.textContent = 'Connected ✅';
+            statusDiv.style.color = 'green';
+            log('WebSocket connected successfully');
+        });
+
+        socket.on('connected', (data) => {
+            log('Server confirmation: ' + JSON.stringify(data));
+        });
+
+        socket.on('disconnect', (reason) => {
+            statusDiv.textContent = 'Disconnected ❌';
+            statusDiv.style.color = 'red';
+            log('WebSocket disconnected: ' + reason);
+        });
+
+        socket.on('job_update', (data) => {
+            log('Job update received: ' + JSON.stringify(data));
+        });
+
+        socket.on('subscription_confirmed', (data) => {
+            log('Subscription confirmed: ' + JSON.stringify(data));
+        });
+
+        socket.on('connect_error', (error) => {
+            statusDiv.textContent = 'Connection Error ❌';
+            statusDiv.style.color = 'red';
+            log('Connection error: ' + error.message);
+        });
+
+        function testSubscription() {
+            log('Testing job subscription...');
+            socket.emit('subscribe_jobs', { filters: {} });
+        }
+
+        function testPing() {
+            log('Testing ping...');
+            socket.emit('ping', (response) => {
+                log('Ping response: ' + JSON.stringify(response));
+            });
+        }
+    </script>
+</body>
+</html>

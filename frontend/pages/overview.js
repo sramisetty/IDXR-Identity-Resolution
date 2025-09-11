@@ -435,7 +435,7 @@ async function loadOverviewStats() {
     try {
         // Fetch statistics from the matching engine
         const stats = await fetchData('/statistics');
-        const backendHealth = await fetchBackendData('/health');
+        const backendHealth = await fetchData('/health');
         
         if (stats) {
             updateStatsGrid(stats);

@@ -1,0 +1,46 @@
+{
+  "processing": {
+    "Identity Matching": {
+      "success": true,
+      "job_id": "BATCH_20250910_174611_c70d40a3",
+      "status": "queued"
+    },
+    "Data Validation": {
+      "success": true,
+      "job_id": "BATCH_20250910_174616_47bb7309",
+      "status": "queued"
+    },
+    "Data Quality": {
+      "success": true,
+      "job_id": "BATCH_20250910_174621_758c5001",
+      "status": "queued"
+    },
+    "Deduplication": {
+      "success": true,
+      "job_id": "BATCH_20250910_174626_f588fac6",
+      "status": "queued"
+    },
+    "Household Detection": {
+      "success": true,
+      "job_id": "BATCH_20250910_174632_e958aba3",
+      "status": "queued"
+    },
+    "Bulk Export": {
+      "success": true,
+      "job_id": "BATCH_20250910_174637_1c3a5f7f",
+      "status": "queued"
+    }
+  },
+  "existing": {
+    "health": true,
+    "statistics": true,
+    "resolve": false
+  },
+  "summary": {
+    "processing_passed": 6,
+    "processing_total": 6,
+    "existing_passed": 2,
+    "existing_total": 3,
+    "overall_success": false
+  }
+}
